@@ -1,0 +1,22 @@
+pandas
+# comparison files are read as .xlsx, and the comparison reports are written as .xlsx
+openpyxl
+lxml
+beautifulsoup4
+pymupdf
+numpy
+# contrib build provides cv2.barcode (fallback barcode reader) and the
+# morphology used to detect table borders on scanned PDFs
+opencv-contrib-python-headless
+uvicorn
+fastapi
+python-multipart
+paddleocr[doc-parser]==3.7.0
+
+# paddlepaddle is intentionally NOT listed here.
+# - Local/CPU dev:  python -m pip install paddlepaddle==3.3.1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+# - Docker/GPU:      installed in the Dockerfile as paddlepaddle-gpu, which
+#   needs its own --extra-index-url and pinned nvidia-*-cu12 wheels that
+#   would otherwise get resolved/overwritten if listed alongside this file.
+#
+# documentation link :- https://www.paddleocr.ai/latest/en/quick_start.html#python-script-usage
