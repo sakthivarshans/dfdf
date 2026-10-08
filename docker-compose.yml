@@ -1,0 +1,51 @@
+services:
+  app:
+    build: .
+    image: table-data-extraction:latest
+    container_name: table-data-extraction
+    ports:
+      # The app always listens on 8001 inside the container; only the host
+      # port is configurable. Set HOST_PORT when 8001 is already taken.
+      - "${HOST_PORT:-8001}:8001"
+    volumes:
+      # Persist uploaded PDFs, split pages, OCR JSON, and Excel output across restarts
+      - ./storage/input:/app/storage/input
+      - ./storage/pages:/app/storage/pages
+      - ./storage/json:/app/storage/json
+      - ./storage/output:/app/storage/output
+      # Extraction history database — keeps records across restarts
+      - ./storage/db:/app/storage/db
+      # Model cache (PaddleOCR-VL/PaddleX weights) — avoids re-downloading on container restart
+      - model_cache:/root/.cache
+      - model_cache_paddlex:/root/.paddlex
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      # GPU 0 wedged after a second CUDA context was created on it (see the
+      # note in README). Inference hung inside paddle's embedding op at 0%
+      # GPU with a core spinning, on a document that had extracted fine
+      # minutes earlier; moving to another GPU fixed it with no code change.
+      - OCR_DEVICE=${OCR_DEVICE:-gpu:2}
+      - DB_PATH=/app/storage/db/table_extractor.db
+      # Override before deploying — this seeds the UI login on first startup
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme123}
+    # GPU passthrough — requires NVIDIA Container Toolkit on the host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  model_cache:
+  model_cache_paddlex:
