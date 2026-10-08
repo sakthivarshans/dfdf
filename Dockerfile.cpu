@@ -1,0 +1,63 @@
+# ── Base: plain Python 3.10 (no CUDA) ─────────────────────────────────────────
+# The CPU deployment deliberately does NOT start from an nvidia/cuda image.
+# It has no libcuda dependency, so it runs on any Docker host — laptops, CI
+# runners, and servers without a GPU — and the image is roughly a tenth the
+# size of the GPU one.
+FROM python:3.10-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1
+
+# System deps required by PyMuPDF and OpenCV (pulled in by paddleocr[doc-parser])
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    libgl1 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# ── Application dependencies (FastAPI, PaddleOCR, etc.) ──────────────────────
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ── PaddlePaddle CPU build ────────────────────────────────────────────────────
+# Same version as the GPU image's paddlepaddle-gpu, from Paddle's CPU index.
+# Installed LAST for the same reason as the GPU build: it needs its own
+# --extra-index-url, and listing it in requirements.txt would let pip resolve
+# the wrong variant.
+RUN pip install --no-cache-dir --retries 10 --timeout 120 paddlepaddle==3.3.1 \
+    --extra-index-url https://www.paddlepaddle.org.cn/packages/stable/cpu/
+
+# ── Application code ──────────────────────────────────────────────────────────
+COPY api/ ./api/
+COPY app_db/ ./app_db/
+COPY config/ ./config/
+COPY engine/ ./engine/
+COPY frontend/ ./frontend/
+COPY models/ ./models/
+COPY scripts/ ./scripts/
+COPY services/ ./services/
+COPY utils/ ./utils/
+COPY app.py .
+
+# storage/ is bind-mounted by docker-compose; keep the tree present for local
+# `docker run` usage without compose.
+RUN mkdir -p storage/input storage/pages storage/json storage/output storage/tmp storage/db
+
+# PaddleOCR-VL model files download on first request, into the model_cache
+# volume that docker-compose mounts, so they survive container restarts.
+# Unlike the GPU image this one *could* pre-fetch at build time, but keeping
+# both images on the same first-request behaviour means one documented
+# warm-up path instead of two.
+
+ENV OCR_DEVICE=cpu
+
+EXPOSE 8001
+
+CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]
