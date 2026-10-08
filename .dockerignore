@@ -1,0 +1,48 @@
+**/__pycache__/
+**/*.py[cod]
+**/*.so
+
+.git/
+.gitignore
+.env
+venv/
+.venv/
+env/
+
+# Runtime data — mounted as volumes, not baked into image
+storage/input/*
+storage/pages/*
+storage/json/*
+storage/output/*
+storage/tmp/*
+storage/db/*
+!storage/**/.gitkeep
+
+# Extraction history database — lives on a mounted volume
+*.db
+*.db-shm
+*.db-wal
+
+# PDFs and Excel outputs are never part of the image
+*.pdf
+*.xlsx
+
+# Dev/scratch files
+.pytest_cache/
+tests/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docs and deploy scripts — not needed inside image
+deploy.sh
+README.md
+docs/
+docker-compose.yml
+docker-compose.cpu.yml
+docker-compose.*.yml
+Dockerfile
+Dockerfile.cpu
