@@ -1,0 +1,49 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project specific data
+# Ignore all files in storage subdirectories but allow the sample files you've created
+storage/input/*
+!storage/input/.gitkeep
+
+storage/pages/*
+!storage/pages/.gitkeep
+
+storage/json/*
+!storage/json/.gitkeep
+
+storage/output/*
+!storage/output/.gitkeep
+
+storage/tmp/*
+!storage/tmp/.gitkeep
+
+temp/
+
+# Extraction-history database
+*.db
+*.db-shm
+*.db-wal
+
+storage/db/*
+!storage/db/.gitkeep
