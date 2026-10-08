@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Data Extraction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+                        accent: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .spinner { border: 3px solid #e5e7eb; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #2563eb; font-weight: 600; }
+        .step-active { background: #2563eb; color: white; }
+        .step-done { background: #16a34a; color: white; }
+        .step-pending { background: #e5e7eb; color: #6b7280; }
+        table th { position: sticky; top: 0; z-index: 1; }
+        .progress-bar { transition: width 0.5s ease; }
+        .table-row-selected { background: #eff6ff; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md fade-in">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Table Data Extraction</h1>
+                <p class="text-gray-500 mt-1">PDF Table Extraction &amp; Comparison</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" id="loginUsername" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="Enter username">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="loginPassword" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="Enter password">
+                </div>
+                <div id="loginError" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm"></div>
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                    <span>Sign In</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HOME PAGE -->
+    <div id="homePage" class="hidden min-h-screen">
+        <!-- Top Navbar -->
+        <nav class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h1 class="text-lg font-bold text-gray-800">Table Data Extraction</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userDisplay" class="text-sm text-gray-600"></span>
+                <button onclick="handleLogout()" class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </nav>
+
+        <!-- Tabs -->
+        <div class="bg-white border-b border-gray-200 px-6">
+            <div class="flex gap-8">
+                <button onclick="switchTab('records')" id="tabRecords"
+                    class="py-4 text-sm font-medium text-gray-600 hover:text-blue-600 border-b-3 border-transparent transition tab-active">
+                    All Extractions
+                </button>
+                <button onclick="switchTab('extract')" id="tabExtract"
+                    class="py-4 text-sm font-medium text-gray-600 hover:text-blue-600 border-b-3 border-transparent transition">
+                    Extract &amp; Compare
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6 max-w-7xl mx-auto">
+            <!-- TAB 1: EXTRACTION RECORDS -->
+            <div id="recordsTab" class="fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Extraction Records</h2>
+                    <button onclick="loadRecords()" class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <div id="recordsContainer" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="p-12 text-center text-gray-400">
+                        <div class="spinner mx-auto mb-3"></div>
+                        <p>Loading records...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: EXTRACT & COMPARE -->
+            <div id="extractTab" class="hidden fade-in">
+                <!-- Which extraction the three steps are working on -->
+                <div id="workflowContext" class="hidden mb-6 bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3"></div>
+
+                <!-- Stepper -->
+                <div class="flex items-center justify-center mb-8 gap-0">
+                    <div id="step1Nav" onclick="showStep(1)" class="flex items-center select-none">
+                        <div id="step1Badge" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold step-active">1</div>
+                        <span class="ml-2 text-sm font-medium text-gray-700">Upload &amp; Extract PDF</span>
+                    </div>
+                    <div class="w-16 h-0.5 bg-gray-300 mx-3" id="line1"></div>
+                    <div id="step2Nav" onclick="showStep(2)" class="flex items-center select-none">
+                        <div id="step2Badge" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold step-pending">2</div>
+                        <span class="ml-2 text-sm font-medium text-gray-700">Load Existing Data</span>
+                    </div>
+                    <div class="w-16 h-0.5 bg-gray-300 mx-3" id="line2"></div>
+                    <div id="step3Nav" onclick="showStep(3)" class="flex items-center select-none">
+                        <div id="step3Badge" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold step-pending">3</div>
+                        <span class="ml-2 text-sm font-medium text-gray-700">Compare</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: PDF Upload -->
+                <div id="step1Content" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 fade-in">
+                    <div id="step1UploadArea">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Step 1: Upload PDF for Extraction</h3>
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition" id="pdfDropZone">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-gray-600 mb-2">Drag &amp; drop your PDF file here, or</p>
+                        <label class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition font-medium">
+                            Browse Files
+                            <input type="file" id="pdfFileInput" accept=".pdf" class="hidden" onchange="onPdfSelected(this)">
+                        </label>
+                        <p class="text-xs text-gray-400 mt-2">PDF files only, max 200MB</p>
+                    </div>
+                    <div id="pdfFileInfo" class="hidden mt-4 p-4 bg-blue-50 rounded-lg flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/>
+                            </svg>
+                            <div>
+                                <p id="pdfFileName" class="font-medium text-gray-800"></p>
+                                <p id="pdfFileSize" class="text-xs text-gray-500"></p>
+                            </div>
+                        </div>
+                        <button onclick="clearPdf()" class="text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Processing mode -->
+                    <div class="mt-6 border border-gray-200 rounded-xl p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Pages to Process</h4>
+                        <div class="flex flex-wrap gap-4 mb-3">
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input type="radio" name="processingMode" value="all" checked onchange="onModeChanged()" class="text-blue-600">
+                                Entire document
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input type="radio" name="processingMode" value="first_n" onchange="onModeChanged()" class="text-blue-600">
+                                First N pages
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input type="radio" name="processingMode" value="page_range" onchange="onModeChanged()" class="text-blue-600">
+                                Page range
+                            </label>
+                        </div>
+                        <div id="firstNInputs" class="hidden">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Number of pages</label>
+                            <input type="number" id="maxPagesInput" min="1" value="5"
+                                class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        </div>
+                        <div id="pageRangeInputs" class="hidden flex gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Start page</label>
+                                <input type="number" id="startPageInput" min="1" value="1"
+                                    class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">End page</label>
+                                <input type="number" id="endPageInput" min="1" value="5"
+                                    class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-3">OCR runs page by page — processing a long document can take several minutes.</p>
+                    </div>
+
+                    <div class="mt-4 flex gap-3">
+                        <button onclick="extractPdf()" id="extractBtn"
+                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            disabled>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Extract Tables
+                        </button>
+                    </div>
+                    </div><!-- /step1UploadArea -->
+                    <div id="extractionProgress" class="hidden mt-4">
+                        <div class="flex items-center gap-3 text-blue-600">
+                            <div class="spinner"></div>
+                            <span id="extractionStatus" class="text-sm font-medium">Extracting tables from PDF...</span>
+                        </div>
+                    </div>
+                    <div id="extractionResult" class="hidden mt-4"></div>
+                    <div id="step1Footer" class="hidden mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                        <button onclick="showStep(2)"
+                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition inline-flex items-center gap-2">
+                            Next: Load Existing Data
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Ground Truth Upload -->
+                <div id="step2Content" class="hidden bg-white rounded-xl border border-gray-200 shadow-sm p-6 mt-4 fade-in">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Step 2: Load Existing Data</h3>
+                    <p class="text-sm text-gray-500 mb-4">Upload the existing data to compare the extracted table against — Excel (<code>.xlsx</code>, <code>.xls</code>) or CSV.</p>
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 transition">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-gray-600 mb-2">Upload existing data file</p>
+                        <label class="inline-block px-6 py-2 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 transition font-medium">
+                            Browse Files
+                            <input type="file" id="groundFileInput" accept=".csv,.xlsx,.xls" class="hidden" onchange="onGroundSelected(this)">
+                        </label>
+                        <p class="text-xs text-gray-400 mt-2">Excel or CSV (.xlsx, .xls, .csv)</p>
+                    </div>
+                    <div id="groundFileInfo" class="hidden mt-4 p-4 bg-green-50 rounded-lg flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <div>
+                                <p id="groundFileName" class="font-medium text-gray-800"></p>
+                                <p id="groundFileSize" class="text-xs text-gray-500"></p>
+                            </div>
+                        </div>
+                        <button onclick="clearGround()" class="text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                        <button onclick="showStep(1)" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition inline-flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Back
+                        </button>
+                        <button onclick="goToStep3()" id="loadGroundBtn"
+                            class="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                            disabled>
+                            Load Existing Data
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                    <p id="groundError" class="hidden mt-3 text-sm text-red-600 text-right"></p>
+                </div>
+
+                <!-- Step 3: Compare -->
+                <div id="step3Content" class="hidden bg-white rounded-xl border border-gray-200 shadow-sm p-6 mt-4 fade-in">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Step 3: Compare Results</h3>
+                    <p id="compareTarget" class="text-sm text-gray-500 mb-4">Compare the merged data with the existing data file.</p>
+
+                    <div id="fieldMapping" class="border border-gray-200 rounded-xl p-4 mb-5">
+                        <h4 class="text-sm font-semibold text-gray-700">Select Unique Field</h4>
+                        <p class="text-xs text-gray-500 mb-3">Rows are paired on this field, so it has to identify a row uniquely on both sides.</p>
+                        <div class="flex flex-wrap items-end gap-3">
+                            <div class="flex-1" style="min-width: 200px">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Extracted data (from the PDF)</label>
+                                <select id="uniqueExtracted" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"></select>
+                            </div>
+                            <span class="text-gray-400 pb-2">&harr;</span>
+                            <div class="flex-1" style="min-width: 200px">
+                                <label id="existingSideLabel" class="block text-xs font-medium text-gray-500 mb-1">Existing data</label>
+                                <select id="uniqueExisting" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"></select>
+                            </div>
+                            <span class="w-9 shrink-0"></span>
+                        </div>
+
+                        <h4 class="text-sm font-semibold text-gray-700 mt-6">Select Compare Fields</h4>
+                        <p class="text-xs text-gray-500 mb-3">The values checked on every paired row. Add a field for each one that has to agree.</p>
+                        <div id="compareFieldRows" class="space-y-3"></div>
+                        <button type="button" onclick="addCompareFieldRow()"
+                            class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add field
+                        </button>
+                        <p id="mappingError" class="hidden mt-3 text-sm text-red-600"></p>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                        <button onclick="showStep(2)" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition inline-flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Back
+                        </button>
+                        <button onclick="runComparison()" id="compareBtn"
+                            class="px-6 py-2.5 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition inline-flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Run Comparison
+                        </button>
+                    </div>
+                    <div id="comparisonProgress" class="hidden mt-4">
+                        <div class="flex items-center gap-3 text-purple-600">
+                            <div class="spinner"></div>
+                            <span class="text-sm font-medium">Comparing data...</span>
+                        </div>
+                    </div>
+                    <div id="comparisonResult" class="hidden mt-6"></div>
+                </div>
+
+                <!-- Reset Button -->
+                <div id="resetSection" class="hidden mt-6 text-center">
+                    <button onclick="resetWorkflow()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-sm">
+                        Start New Extraction
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECORD PREVIEW MODAL -->
+    <div id="previewModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 id="previewTitle" class="text-lg font-bold text-gray-800">Preview</h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="previewBody" class="p-6 overflow-auto flex-1">
+                <div class="spinner mx-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ==================== STATE ====================
+    const API_BASE = window.location.origin;
+    let currentUser = null;
+    let currentExtractionId = null;
+    let currentTables = [];        // tables from the latest extraction
+    let selectedTableIndex = null; // which raw table the debug panel shows
+    let mergedRowCount = null;     // rows in the merged CSV, for the compare label
+    let selectedPdfFile = null;
+    let selectedGroundFile = null;
+    let extractedColumns = [];     // columns of the merged extraction
+    let existingColumns = [];      // columns of the uploaded existing-data file
+    let existingFileInfo = null;   // {filename, columns, total_rows} of that file
+    let compareRowSeq = 0;
+    let currentStep = 1;
+    let maxStep = 1;               // furthest step unlocked so far
+    let elapsedTimer = null;
+
+    // ==================== UTILS ====================
+    // Table headings and document titles come from OCR'd document text, and
+    // filenames come from the user — both land in innerHTML below, so escape.
+    function esc(value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatDuration(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return m > 0 ? `${m}m ${s}s` : `${s}s`;
+    }
+
+    // ==================== AUTH ====================
+    function checkSession() {
+        const user = localStorage.getItem('tde_user');
+        if (user) {
+            currentUser = user;
+            showHome();
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+        const btn = document.getElementById('loginBtn');
+
+        btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div> <span>Signing in...</span>';
+        btn.disabled = true;
+        errorDiv.classList.add('hidden');
+
+        try {
+            const form = new FormData();
+            form.append('username', username);
+            form.append('password', password);
+
+            const res = await fetch(`${API_BASE}/api/login`, { method: 'POST', body: form });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                currentUser = data.username;
+                localStorage.setItem('tde_user', data.username);
+                showHome();
+            } else {
+                errorDiv.textContent = data.detail || 'Invalid credentials';
+                errorDiv.classList.remove('hidden');
+            }
+        } catch (err) {
+            errorDiv.textContent = 'Connection error. Make sure the server is running.';
+            errorDiv.classList.remove('hidden');
+        } finally {
+            btn.innerHTML = '<span>Sign In</span>';
+            btn.disabled = false;
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('tde_user');
+        currentUser = null;
+        document.getElementById('homePage').classList.add('hidden');
+        document.getElementById('loginPage').classList.remove('hidden');
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+
+    function showHome() {
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('homePage').classList.remove('hidden');
+        document.getElementById('userDisplay').textContent = `Welcome, ${currentUser}`;
+        updateStepNav();
+        loadRecords();
+    }
+
+    // ==================== TABS ====================
+    function switchTab(tab) {
+        const tabs = ['records', 'extract'];
+        tabs.forEach(t => {
+            document.getElementById(`${t}Tab`).classList.toggle('hidden', t !== tab);
+            document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.toggle('tab-active', t === tab);
+        });
+        if (tab === 'records') loadRecords();
+    }
+
+    // ==================== TAB 1: RECORDS ====================
+    async function loadRecords() {
+        const container = document.getElementById('recordsContainer');
+        container.innerHTML = '<div class="p-12 text-center text-gray-400"><div class="spinner mx-auto mb-3"></div><p>Loading records...</p></div>';
+
+        try {
+            const res = await fetch(`${API_BASE}/api/records`);
+            const data = await res.json();
+            const records = data.records || [];
+
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div class="p-12 text-center text-gray-400">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-lg font-medium">No extraction records yet</p>
+                        <p class="text-sm mt-1">Go to "Extract &amp; Compare" tab to start extracting tables from PDFs.</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `<table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">ID</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Filename</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Pages</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Rows</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Time</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">`;
+
+            records.forEach(r => {
+                const statusColor = r.status === 'completed' ? 'green' : r.status === 'failed' ? 'red' : 'yellow';
+                const stamp = formatTimestamp(r.created_at);
+                html += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 text-gray-800 font-medium">#${r.id}</td>
+                        <td class="px-4 py-3 text-gray-700 max-w-xs truncate" title="${esc(r.filename)}">${esc(r.filename)}</td>
+                        <td class="px-4 py-3 text-gray-700">${r.pages_processed}</td>
+                        <td class="px-4 py-3 text-gray-700">${r.rows_extracted ?? 0}${r.rows_rejected ? ` <span class="text-red-600 text-xs">(${r.rows_rejected} rejected)</span>` : ''}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-1 bg-${statusColor}-50 text-${statusColor}-700 rounded text-xs font-medium">${esc(r.status)}</span></td>
+                        <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">${esc(stamp.date)}</td>
+                        <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">${esc(stamp.time)}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <button onclick="previewRecord(${r.id})" title="Preview" aria-label="Preview"
+                                    class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <a href="${API_BASE}/download/${r.id}" title="Download CSV" aria-label="Download CSV"
+                                    class="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                </a>
+                                <button onclick="compareRecord(${r.id})" title="Compare against a ground truth file"
+                                    class="px-3 py-1.5 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 font-medium whitespace-nowrap">Compare</button>
+                                <button onclick="deleteRecord(${r.id})" title="Delete" aria-label="Delete"
+                                    class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<div class="p-12 text-center text-red-400"><p>Error loading records: ${esc(err.message)}</p></div>`;
+        }
+    }
+
+    // created_at comes from SQLite CURRENT_TIMESTAMP: "YYYY-MM-DD HH:MM:SS" in
+    // UTC with no zone marker, which JS would otherwise read as local time.
+    function formatTimestamp(value) {
+        if (!value) return { date: '—', time: '—' };
+        const iso = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(value)
+            ? value.replace(' ', 'T') + 'Z'
+            : value;
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return { date: String(value), time: '' };
+        return {
+            date: d.toLocaleDateString(),
+            time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        };
+    }
+
+    // Compare straight from a record: the PDF is already extracted, so step 1
+    // is skipped and the workflow opens at the ground truth upload.
+    async function compareRecord(id) {
+        resetWorkflow();
+        switchTab('extract');
+
+        document.getElementById('step1UploadArea').classList.add('hidden');
+
+        const result = document.getElementById('extractionResult');
+        result.innerHTML = '<div class="flex items-center gap-3 text-blue-600"><div class="spinner"></div>'
+            + `<span class="text-sm font-medium">Loading extraction #${id}...</span></div>`;
+        result.classList.remove('hidden');
+
+        try {
+            const res = await fetch(`${API_BASE}/api/records/${id}`);
+            const record = await res.json();
+            if (!res.ok) throw new Error(record.detail || 'Failed to load record');
+
+            currentExtractionId = id;
+            currentTables = record.tables || [];
+            mergedRowCount = record.rows_extracted ?? null;
+
+            result.innerHTML = `
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center gap-2 text-blue-800 font-semibold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Using existing extraction #${id}
+                    </div>
+                    <p class="text-sm text-blue-700 mt-1">${esc(record.filename)}</p>
+                    <div class="mt-3 flex flex-wrap gap-3 text-sm">
+                        <span class="bg-blue-100 px-3 py-1 rounded text-blue-800 font-medium">Rows: ${record.rows_extracted ?? 0}</span>
+                        <span class="bg-blue-100 px-3 py-1 rounded text-blue-800 font-medium">Pages: ${record.pages_processed ?? 0}</span>
+                        <a href="${API_BASE}/download/${id}" class="bg-white border border-blue-300 px-3 py-1 rounded text-blue-700 font-medium hover:bg-blue-100">Download CSV</a>
+                        <button onclick="switchTab('records')" class="bg-white border border-gray-300 px-3 py-1 rounded text-gray-600 font-medium hover:bg-gray-50">Back to records</button>
+                    </div>
+                </div>
+                <div class="mt-4 bg-white border border-gray-200 rounded-xl p-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-1">Merged Data</h4>
+                    <p class="text-xs text-gray-500 mb-3">This is what the comparison runs against.</p>
+                    <div id="mergedPreview"><div class="text-center py-6"><div class="spinner mx-auto"></div></div></div>
+                </div>`;
+
+            // Step 2 is the only thing still missing — the existing data file.
+            setWorkflowContext(id, record.filename, record.rows_extracted ?? 0, record.pages_processed ?? 0);
+            unlockStep(2);
+            document.getElementById('step1Footer').classList.remove('hidden');
+            document.getElementById('resetSection').classList.remove('hidden');
+            showStep(2);
+
+            const pres = await fetch(`${API_BASE}/api/records/${id}/preview`);
+            const preview = await pres.json();
+            if (!pres.ok) throw new Error(preview.detail || 'Failed to load merged preview');
+            mergedRowCount = preview.total_rows;
+            extractedColumns = preview.columns || [];
+            renderMergedPreview({
+                columns: preview.columns,
+                data_preview: preview.data,
+                rows_extracted: preview.total_rows,
+            });
+            updateCompareTarget();
+        } catch (err) {
+            const preview = document.getElementById('mergedPreview');
+            if (preview) {
+                preview.innerHTML = `<p class="text-sm text-red-500">${esc(err.message)}</p>`;
+                return;
+            }
+            result.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p class="text-sm text-red-600">${esc(err.message)}</p>
+                </div>`;
+        }
+    }
+
+    // ==================== PREVIEW MODAL ====================
+    async function previewRecord(id) {
+        const modal = document.getElementById('previewModal');
+        const body = document.getElementById('previewBody');
+        const title = document.getElementById('previewTitle');
+
+        title.textContent = `Extraction Record #${id}`;
+        body.innerHTML = '<div class="text-center py-8"><div class="spinner mx-auto mb-3"></div><p class="text-gray-400">Loading tables...</p></div>';
+        modal.classList.remove('hidden');
+
+        try {
+            const res = await fetch(`${API_BASE}/api/records/${id}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Failed to load record');
+
+            const tables = data.tables || [];
+            if (tables.length === 0) {
+                body.innerHTML = '<div class="text-center py-8 text-gray-400"><p>No tables recorded for this extraction.</p></div>';
+                return;
+            }
+
+            let html = `<p class="text-sm text-gray-500 mb-4">${esc(data.filename)} — ${data.rows_extracted ?? 0} merged rows from ${data.tables_merged ?? 0}/${tables.length} tables across ${data.pages_processed} page(s)</p>`;
+            html += '<div id="modalMerged" class="mb-5"><div class="spinner mx-auto"></div></div>';
+            html += '<p class="text-sm font-semibold text-gray-700 mb-2">All detected tables</p>';
+            html += '<div class="border rounded-lg divide-y divide-gray-100 mb-4">';
+            tables.forEach(t => {
+                html += `
+                    <button onclick="loadTablePreview(${id}, ${t.table_index})"
+                        class="w-full text-left px-4 py-3 hover:bg-blue-50 transition flex items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-gray-800 truncate">Table ${t.table_index} · ${esc(t.table_heading)}</p>
+                            <p class="text-xs text-gray-500">Page ${esc(t.page_number)} · ${t.row_count} rows × ${t.col_count} cols</p>
+                        </div>
+                        <span class="text-xs text-blue-600 font-medium whitespace-nowrap">View →</span>
+                    </button>`;
+            });
+            html += '</div><div id="modalTablePreview"></div>';
+            body.innerHTML = html;
+
+            loadMergedPreview(id);
+        } catch (err) {
+            body.innerHTML = `<div class="text-center py-8 text-red-500"><p>${esc(err.message)}</p></div>`;
+        }
+    }
+
+    async function loadMergedPreview(recordId) {
+        const target = document.getElementById('modalMerged');
+        if (!target) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/records/${recordId}/preview`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Failed to load merged preview');
+            target.innerHTML = `
+                <p class="text-sm font-semibold text-gray-700 mb-1">Merged Data</p>
+                <p class="text-xs text-gray-500 mb-2">Showing ${Math.min(data.data.length, 100)} of ${data.total_rows} rows</p>
+                ${renderTable(data)}`;
+        } catch (err) {
+            target.innerHTML = `<p class="text-sm text-red-500">${esc(err.message)}</p>`;
+        }
+    }
+
+    async function loadTablePreview(recordId, tableIndex) {
+        const target = document.getElementById('modalTablePreview');
+        if (!target) return;
+        target.innerHTML = '<div class="text-center py-6"><div class="spinner mx-auto"></div></div>';
+
+        try {
+            const res = await fetch(`${API_BASE}/api/records/${recordId}/tables/${tableIndex}/preview`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Failed to load preview');
+
+            target.innerHTML = `
+                <p class="text-sm font-semibold text-gray-700 mb-2">Table ${tableIndex}</p>
+                <p class="text-xs text-gray-500 mb-3">Showing ${Math.min(data.data.length, 100)} of ${data.total_rows} rows</p>
+                ${renderTable(data)}`;
+        } catch (err) {
+            target.innerHTML = `<div class="text-center py-6 text-red-500"><p>${esc(err.message)}</p></div>`;
+        }
+    }
+
+    function renderTable(data) {
+        let html = '<div class="overflow-auto max-h-[50vh] border rounded-lg"><table class="w-full text-xs">';
+        html += '<thead class="bg-gray-50 sticky top-0"><tr>';
+        data.columns.forEach(c => { html += `<th class="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">${esc(c)}</th>`; });
+        html += '</tr></thead><tbody class="divide-y divide-gray-100">';
+        data.data.forEach(row => {
+            html += '<tr class="hover:bg-gray-50">';
+            data.columns.forEach(c => { html += `<td class="px-3 py-2 text-gray-700 whitespace-nowrap">${esc(row[c])}</td>`; });
+            html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+        return html;
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').classList.add('hidden');
+    }
+
+    async function deleteRecord(id) {
+        if (!confirm(`Delete extraction record #${id}?`)) return;
+        try {
+            await fetch(`${API_BASE}/api/records/${id}`, { method: 'DELETE' });
+            loadRecords();
+        } catch (err) {
+            alert('Error deleting record: ' + err.message);
+        }
+    }
+
+    // ==================== TAB 2: EXTRACT & COMPARE ====================
+
+    // Step 1: PDF
+    function onPdfSelected(input) {
+        const file = input.files[0];
+        if (!file) return;
+        selectedPdfFile = file;
+        document.getElementById('pdfFileInfo').classList.remove('hidden');
+        document.getElementById('pdfFileName').textContent = file.name;
+        document.getElementById('pdfFileSize').textContent = formatBytes(file.size);
+        document.getElementById('extractBtn').disabled = false;
+    }
+
+    function clearPdf() {
+        selectedPdfFile = null;
+        document.getElementById('pdfFileInput').value = '';
+        document.getElementById('pdfFileInfo').classList.add('hidden');
+        document.getElementById('extractBtn').disabled = true;
+    }
+
+    function selectedMode() {
+        return document.querySelector('input[name="processingMode"]:checked').value;
+    }
+
+    function onModeChanged() {
+        const mode = selectedMode();
+        document.getElementById('firstNInputs').classList.toggle('hidden', mode !== 'first_n');
+        document.getElementById('pageRangeInputs').classList.toggle('hidden', mode !== 'page_range');
+    }
+
+    async function extractPdf() {
+        if (!selectedPdfFile) return;
+
+        const btn = document.getElementById('extractBtn');
+        const progress = document.getElementById('extractionProgress');
+        const status = document.getElementById('extractionStatus');
+        const result = document.getElementById('extractionResult');
+
+        btn.disabled = true;
+        progress.classList.remove('hidden');
+        result.classList.add('hidden');
+
+        const form = new FormData();
+        form.append('file', selectedPdfFile);
+
+        const mode = selectedMode();
+        form.append('processing_mode', mode);
+        if (mode === 'first_n') {
+            form.append('max_pages', document.getElementById('maxPagesInput').value);
+        } else if (mode === 'page_range') {
+            form.append('start_page', document.getElementById('startPageInput').value);
+            form.append('end_page', document.getElementById('endPageInput').value);
+        }
+
+        // OCR runs page by page and can take minutes — show elapsed time so a
+        // long run is visibly progressing rather than apparently hung.
+        const startedAt = Date.now();
+        elapsedTimer = setInterval(() => {
+            const elapsed = Math.round((Date.now() - startedAt) / 1000);
+            status.textContent = `Extracting tables from PDF... (${formatDuration(elapsed)} elapsed)`;
+        }, 1000);
+
+        try {
+            const res = await fetch(`${API_BASE}/api/extract`, { method: 'POST', body: form });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.detail || 'Extraction failed');
+
+            currentExtractionId = data.record_id;
+            currentTables = data.tables || [];
+            extractedColumns = data.columns || [];
+            selectedTableIndex = null;
+            mergedRowCount = data.rows_extracted;
+
+            let html = `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-center gap-2 text-green-700 font-semibold mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Extraction Successful
+                    </div>
+                    <p class="text-sm text-green-600">${esc(data.message)}</p>
+                    <div class="mt-3 flex flex-wrap gap-3 text-sm">
+                        <span class="bg-green-100 px-3 py-1 rounded text-green-800 font-medium">Rows: ${data.rows_extracted}</span>
+                        <span class="bg-green-100 px-3 py-1 rounded text-green-800 font-medium">Tables merged: ${data.tables_merged}/${data.tables_extracted}</span>
+                        <span class="bg-green-100 px-3 py-1 rounded text-green-800 font-medium">Pages: ${data.pages_processed}</span>
+                        <span class="bg-green-100 px-3 py-1 rounded text-green-800 font-medium">Record ID: #${data.record_id}</span>
+                        <a href="${API_BASE}/download/${data.record_id}" class="bg-white border border-green-300 px-3 py-1 rounded text-green-700 font-medium hover:bg-green-50">Download CSV</a>
+                    </div>
+                    ${renderRowHealth(data)}
+                </div>
+                <div class="mt-4 bg-white border border-gray-200 rounded-xl p-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-1">Merged Data</h4>
+                    <p class="text-xs text-gray-500 mb-3">All qualifying tables combined into one table — this is what downloads and what comparison runs against.</p>
+                    <div id="mergedPreview"></div>
+                </div>
+                <details class="mt-4 bg-white border border-gray-200 rounded-xl p-4">
+                    <summary class="text-sm font-semibold text-gray-700 cursor-pointer">All detected tables (${data.tables_extracted})</summary>
+                    <p class="text-xs text-gray-500 mt-1 mb-3">Every table as it was read, before merging — for checking what the merge kept or skipped.</p>
+                    <div id="tableList" class="border rounded-lg divide-y divide-gray-100 max-h-72 overflow-auto"></div>
+                    <div id="tablePreview" class="mt-4"></div>
+                </details>`;
+
+            result.innerHTML = html;
+            result.classList.remove('hidden');
+
+            renderMergedPreview(data);
+            renderTableList();
+
+            // Step 2 is now reachable, but stay here so the results can be read
+            setWorkflowContext(data.record_id, data.document_name, data.rows_extracted, data.pages_processed);
+            unlockStep(2);
+            document.getElementById('step1Footer').classList.remove('hidden');
+            document.getElementById('resetSection').classList.remove('hidden');
+        } catch (err) {
+            result.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-center gap-2 text-red-700 font-semibold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Extraction Failed
+                    </div>
+                    <p class="text-sm text-red-600 mt-1">${esc(err.message)}</p>
+                </div>`;
+            result.classList.remove('hidden');
+            btn.disabled = false;
+        } finally {
+            clearInterval(elapsedTimer);
+            elapsedTimer = null;
+            status.textContent = 'Extracting tables from PDF...';
+            progress.classList.add('hidden');
+        }
+    }
+
+    // Rows the merge changed or refused. Surfaced rather than buried: a
+    // realigned row is a guess the OCR forced, and a rejected one is data
+    // that is simply not in the CSV.
+    function renderRowHealth(data) {
+        if (!data.rows_repaired && !data.rows_rejected) return '';
+        let html = '<div class="mt-3 flex flex-wrap gap-3 text-xs">';
+        if (data.rows_repaired) {
+            html += `<span class="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1 rounded">
+                ${data.rows_repaired} row(s) realigned — marked <code>repaired</code> in the CSV</span>`;
+        }
+        if (data.rows_rejected) {
+            html += `<a href="${API_BASE}/download/${data.record_id}/rejected"
+                class="bg-red-50 border border-red-200 text-red-800 px-3 py-1 rounded hover:bg-red-100">
+                ${data.rows_rejected} row(s) rejected — download to review</a>`;
+        }
+        return html + '</div>';
+    }
+
+    function renderMergedPreview(data) {
+        const target = document.getElementById('mergedPreview');
+        if (!target) return;
+        const rows = data.data_preview || [];
+        if (rows.length === 0) {
+            target.innerHTML = '<p class="text-sm text-gray-400">No rows merged.</p>';
+            return;
+        }
+        target.innerHTML = `
+            <p class="text-xs text-gray-500 mb-2">Showing ${rows.length} of ${data.rows_extracted} rows</p>
+            ${renderTable({ columns: data.columns, data: rows })}`;
+    }
+
+    function renderTableList() {
+        const list = document.getElementById('tableList');
+        if (!list) return;
+
+        list.innerHTML = currentTables.map(t => `
+            <button id="tableRow${t.table_index}" onclick="selectTable(${t.table_index})"
+                class="w-full text-left px-4 py-3 hover:bg-blue-50 transition flex items-center justify-between gap-4 ${t.table_index === selectedTableIndex ? 'table-row-selected' : ''}">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">Table ${t.table_index} · ${esc(t.table_heading)}</p>
+                    <p class="text-xs text-gray-500">Page ${esc(t.page_number)} · ${t.row_count} rows × ${t.col_count} cols</p>
+                </div>
+                <span class="text-xs font-medium whitespace-nowrap ${t.table_index === selectedTableIndex ? 'text-blue-600' : 'text-gray-400'}">
+                    ${t.table_index === selectedTableIndex ? 'Selected' : 'Select'}
+                </span>
+            </button>`).join('');
+    }
+
+    async function selectTable(tableIndex) {
+        selectedTableIndex = tableIndex;
+        renderTableList();
+        updateCompareTarget();
+
+        const target = document.getElementById('tablePreview');
+        if (!target) return;
+        target.innerHTML = '<div class="text-center py-6"><div class="spinner mx-auto"></div></div>';
+
+        try {
+            const res = await fetch(`${API_BASE}/api/records/${currentExtractionId}/tables/${tableIndex}/preview`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Failed to load preview');
+
+            target.innerHTML = `
+                <p class="text-xs text-gray-500 mb-2">Table ${tableIndex} — showing ${Math.min(data.data.length, 100)} of ${data.total_rows} rows</p>
+                ${renderTable(data)}`;
+        } catch (err) {
+            target.innerHTML = `<div class="text-center py-6 text-red-500"><p>${esc(err.message)}</p></div>`;
+        }
+    }
+
+    function updateCompareTarget() {
+        const el = document.getElementById('compareTarget');
+        if (!el) return;
+        const left = mergedRowCount !== null
+            ? `the merged data (${mergedRowCount} rows)`
+            : 'the merged data';
+        const right = existingFileInfo
+            ? `${existingFileInfo.filename} (${existingFileInfo.total_rows} rows)`
+            : 'the existing data file';
+        el.textContent = `Comparing ${left} against ${right}.`;
+    }
+
+    // Step 2: Ground Truth
+    function onGroundSelected(input) {
+        const file = input.files[0];
+        if (!file) return;
+        selectedGroundFile = file;
+        document.getElementById('groundFileInfo').classList.remove('hidden');
+        document.getElementById('groundFileName').textContent = file.name;
+        document.getElementById('groundFileSize').textContent = formatBytes(file.size);
+        document.getElementById('loadGroundBtn').disabled = false;
+    }
+
+    function clearGround() {
+        selectedGroundFile = null;
+        document.getElementById('groundFileInput').value = '';
+        document.getElementById('groundFileInfo').classList.add('hidden');
+        document.getElementById('loadGroundBtn').disabled = true;
+    }
+
+    async function goToStep3() {
+        if (!selectedGroundFile) return;
+
+        const btn = document.getElementById('loadGroundBtn');
+        const error = document.getElementById('groundError');
+        error.classList.add('hidden');
+        btn.disabled = true;
+        btn.textContent = 'Reading file...';
+
+        try {
+            // the mapping cannot be offered until both column lists are known
+            const form = new FormData();
+            form.append('file', selectedGroundFile);
+            const res = await fetch(`${API_BASE}/api/existing-data/columns`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Could not read that file');
+
+            existingFileInfo = data;
+            existingColumns = data.columns || [];
+            if (!existingColumns.length) throw new Error('That file has no column headers to map');
+
+            if (!extractedColumns.length && currentExtractionId) {
+                const pres = await fetch(`${API_BASE}/api/records/${currentExtractionId}/preview`);
+                const preview = await pres.json();
+                if (!pres.ok) throw new Error(preview.detail || 'Could not read the extracted data');
+                extractedColumns = preview.columns || [];
+            }
+            if (!extractedColumns.length) throw new Error('The extracted data has no columns to map');
+
+            unlockStep(3);
+            showStep(3);
+            renderFieldMapping();
+            updateCompareTarget();
+        } catch (err) {
+            error.textContent = err.message;
+            error.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Load Existing Data';
+        }
+    }
+
+
+    // ==================== FIELD MAPPING ====================
+    // The two sides rarely agree on column names, so nothing is compared
+    // until the user has said which extracted column means which existing
+    // one — a key to pair rows on, then the fields that have to agree.
+
+    function normHeader(name) {
+        return String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function optionsHtml(columns, selected) {
+        return columns.map(c =>
+            `<option value="${esc(c)}"${c === selected ? ' selected' : ''}>${esc(c)}</option>`
+        ).join('');
+    }
+
+    // the same column name on both sides is almost always the same field
+    function autoPair(extractedColumn) {
+        const target = normHeader(extractedColumn);
+        return existingColumns.find(c => normHeader(c) === target) || '';
+    }
+
+    function pairedColumns() {
+        return extractedColumns
+            .map(c => ({ extracted: c, existing: autoPair(c) }))
+            .filter(p => p.existing);
+    }
+
+    const IDENTIFIER = /(midascode|code|sku|ean|barcode|productid|id|ref)/;
+
+    function suggestKeyPair() {
+        const paired = pairedColumns();
+
+        // best case: a column that means the same on both sides and reads
+        // like an identifier
+        const matched = paired.find(p => IDENTIFIER.test(normHeader(p.extracted)));
+        if (matched) return matched;
+
+        // the two files rarely name the key the same way — "Midas Code" on
+        // the PDF side against a plain "Code" in the spreadsheet — so fall
+        // back to the first identifier-looking column on each side
+        const extractedId = extractedColumns.find(c => IDENTIFIER.test(normHeader(c)));
+        const existingId = existingColumns.find(c => IDENTIFIER.test(normHeader(c)));
+        if (extractedId && existingId) return { extracted: extractedId, existing: existingId };
+
+        return paired[0]
+            || { extracted: extractedColumns[0] || '', existing: existingColumns[0] || '' };
+    }
+
+    function renderFieldMapping() {
+        const key = suggestKeyPair();
+        document.getElementById('uniqueExtracted').innerHTML = optionsHtml(extractedColumns, key.extracted);
+        document.getElementById('uniqueExisting').innerHTML = optionsHtml(existingColumns, key.existing);
+        document.getElementById('existingSideLabel').textContent = existingFileInfo
+            ? `Existing data (${existingFileInfo.filename})`
+            : 'Existing data';
+
+        document.getElementById('compareFieldRows').innerHTML = '';
+        document.getElementById('mappingError').classList.add('hidden');
+
+        // start with one row, on the first sensible field that is not the key
+        const first = pairedColumns().find(p => p.extracted !== key.extracted);
+        if (first) {
+            addCompareFieldRow(first.extracted, first.existing);
+        } else {
+            // nothing lines up by name — anything but the key beats defaulting
+            // the first compare row to the key itself
+            addCompareFieldRow(
+                extractedColumns.find(c => c !== key.extracted) || extractedColumns[0],
+                existingColumns.find(c => c !== key.existing) || existingColumns[0],
+            );
+        }
+    }
+
+    function addCompareFieldRow(extractedValue, existingValue) {
+        if (!extractedColumns.length || !existingColumns.length) return;
+
+        const chosen = extractedValue || extractedColumns[0];
+        const partner = existingValue || autoPair(chosen) || existingColumns[0];
+        const id = ++compareRowSeq;
+
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap items-center gap-3';
+        row.dataset.compareRow = id;
+        row.innerHTML = `
+            <div class="flex-1" style="min-width: 200px">
+                <select class="compare-extracted w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">${optionsHtml(extractedColumns, chosen)}</select>
+            </div>
+            <span class="text-gray-400">&harr;</span>
+            <div class="flex-1" style="min-width: 200px">
+                <select class="compare-existing w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">${optionsHtml(existingColumns, partner)}</select>
+            </div>
+            <button type="button" onclick="removeCompareFieldRow(${id})" title="Remove this field" aria-label="Remove this field"
+                class="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>`;
+        document.getElementById('compareFieldRows').appendChild(row);
+    }
+
+    function removeCompareFieldRow(id) {
+        const row = document.querySelector(`[data-compare-row="${id}"]`);
+        if (row) row.remove();
+    }
+
+    function collectMapping() {
+        const rows = document.querySelectorAll('#compareFieldRows [data-compare-row]');
+        return {
+            key: {
+                extracted: document.getElementById('uniqueExtracted').value,
+                existing: document.getElementById('uniqueExisting').value,
+            },
+            fields: Array.from(rows)
+                .map(row => ({
+                    extracted: row.querySelector('.compare-extracted').value,
+                    existing: row.querySelector('.compare-existing').value,
+                }))
+                .filter(pair => pair.extracted && pair.existing),
+        };
+    }
+
+    // Blank and duplicate keys are rows that could not be paired at all —
+    // they would otherwise vanish between "extracted" and "compared".
+    function renderKeyWarnings(data) {
+        const notes = [];
+        if (data.duplicate_keys_extracted)
+            notes.push(`${data.duplicate_keys_extracted} duplicate key(s) in the extracted data — only the first row of each was compared`);
+        if (data.duplicate_keys_ground)
+            notes.push(`${data.duplicate_keys_ground} duplicate key(s) in the existing data — only the first row of each was compared`);
+        if (data.blank_keys_extracted)
+            notes.push(`${data.blank_keys_extracted} extracted row(s) have no key and could not be paired`);
+        if (data.blank_keys_ground)
+            notes.push(`${data.blank_keys_ground} existing row(s) have no key and could not be paired`);
+        if (!notes.length) return '';
+        return `<div class="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+            ${notes.map(n => `<p>${esc(n)}</p>`).join('')}
+        </div>`;
+    }
+
+    // Step 3: Compare
+    async function runComparison() {
+        if (!currentExtractionId || !selectedGroundFile) return;
+
+        const mapping = collectMapping();
+        const mappingError = document.getElementById('mappingError');
+        mappingError.classList.add('hidden');
+        if (!mapping.key.extracted || !mapping.key.existing) {
+            mappingError.textContent = 'Choose the unique field on both sides.';
+            mappingError.classList.remove('hidden');
+            return;
+        }
+        if (!mapping.fields.length) {
+            mappingError.textContent = 'Add at least one field to compare.';
+            mappingError.classList.remove('hidden');
+            return;
+        }
+
+        const btn = document.getElementById('compareBtn');
+        const progress = document.getElementById('comparisonProgress');
+        const result = document.getElementById('comparisonResult');
+
+        btn.disabled = true;
+        progress.classList.remove('hidden');
+        result.classList.add('hidden');
+
+        const form = new FormData();
+        form.append('extraction_id', currentExtractionId);
+        form.append('file', selectedGroundFile);
+        form.append('unique_key', JSON.stringify(mapping.key));
+        form.append('compare_fields', JSON.stringify(mapping.fields));
+
+        try {
+            const res = await fetch(`${API_BASE}/api/compare`, { method: 'POST', body: form });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.detail || 'Comparison failed');
+
+            // One card per figure the user asked for. Accuracy is deliberately
+            // not among them: the two spreadsheets below are the answer.
+            const card = (value, label, color) => `
+                            <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                                <p class="text-2xl font-bold text-${color}-600">${value}</p>
+                                <p class="text-xs text-gray-500 mt-1">${label}</p>
+                            </div>`;
+
+            let html = `
+                <div class="bg-white border rounded-xl overflow-hidden">
+                    <!-- Summary -->
+                    <div class="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4">Comparison Summary</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            ${card(data.total_rows_extracted, 'Extracted Rows', 'blue')}
+                            ${card(data.total_rows_ground, 'Existing Data Rows', 'green')}
+                            ${card(data.rows_paired ?? '—', 'Rows Paired', 'indigo')}
+                            ${card(data.mismatched_rows, 'Mismatched Rows', 'red')}
+                            ${card(data.only_in_extracted_rows ?? '—', 'Only in Extracted', 'orange')}
+                            ${card(data.only_in_existing_rows ?? '—', 'Only in Existing', 'purple')}
+                        </div>
+                    </div>`;
+
+            // The spreadsheets are the point of the run — every row of the
+            // uploaded file with a verdict, and everything the PDF had that
+            // the file does not mention.
+            if (data.downloads) {
+                html += `
+                    <div class="p-6 border-b">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-1">Download the results</h4>
+                        <p class="text-xs text-gray-500 mb-3">Two Excel workbooks.</p>
+                        <div class="flex flex-wrap gap-3">
+                            <a href="${API_BASE}${data.downloads.existing_report}"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Updated Existing Data (${data.total_rows_ground} rows)
+                            </a>
+                            <a href="${API_BASE}${data.downloads.extracted_only}"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-medium text-sm hover:bg-orange-700 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Data Only in Extracted (${data.only_in_extracted_rows ?? 0} rows)
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-3">
+                            The first adds <code>Data in PDF</code>, <code>Status</code> and the PDF's own value to every row of
+                            ${esc(existingFileInfo ? existingFileInfo.filename : 'the uploaded file')}.
+                        </p>
+                    </div>`;
+            }
+
+            // Rows that could not be paired at all still have to be visible.
+            if (data.mode === 'mapped') {
+                const warnings = renderKeyWarnings(data);
+                if (warnings) html += `<div class="p-6 border-b">${warnings}</div>`;
+            }
+
+            // Column Info
+            if (data.mode !== 'mapped' && data.common_columns) {
+                html += `
+                    <div class="p-6 border-b">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Column Analysis</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <p class="font-semibold text-blue-700 mb-1">Common Columns (${data.common_columns.length})</p>
+                                <p class="text-blue-600">${esc(data.common_columns.join(', ')) || 'None'}</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-3">
+                                <p class="font-semibold text-orange-700 mb-1">Only in Extracted (${(data.only_in_extracted || []).length})</p>
+                                <p class="text-orange-600">${esc((data.only_in_extracted || []).join(', ')) || 'None'}</p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-3">
+                                <p class="font-semibold text-purple-700 mb-1">Only in Ground Truth (${(data.only_in_ground || []).length})</p>
+                                <p class="text-purple-600">${esc((data.only_in_ground || []).join(', ')) || 'None'}</p>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            // Row Mismatches
+            if (data.row_comparison && data.row_comparison.length > 0) {
+                html += `
+                    <div class="p-6">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Row Mismatches (showing ${data.row_comparison.length})</h4>
+                        <div class="overflow-auto max-h-64 border rounded-lg">
+                            <table class="w-full text-xs">
+                                <thead class="bg-red-50 sticky top-0">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left font-semibold text-red-700">Key</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-red-700">Column</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-red-700">Extracted</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-red-700">Existing Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">`;
+                data.row_comparison.forEach(r => {
+                    Object.entries(r.differences).forEach(([col, vals], i) => {
+                        html += `<tr class="hover:bg-red-50">
+                            <td class="px-3 py-2 text-gray-700">${i === 0 ? r.row : ''}</td>
+                            <td class="px-3 py-2 text-gray-700 font-medium">${esc(col)}</td>
+                            <td class="px-3 py-2 text-red-600">${esc(vals.extracted)}</td>
+                            <td class="px-3 py-2 text-green-600">${esc(vals.ground_truth)}</td>
+                        </tr>`;
+                    });
+                });
+                html += '</tbody></table></div></div>';
+            }
+
+            html += '</div>';
+            result.innerHTML = html;
+            result.classList.remove('hidden');
+
+        } catch (err) {
+            result.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p class="text-red-700 font-semibold">Comparison Failed</p>
+                    <p class="text-sm text-red-600 mt-1">${esc(err.message)}</p>
+                </div>`;
+            result.classList.remove('hidden');
+        } finally {
+            progress.classList.add('hidden');
+            btn.disabled = false;
+        }
+    }
+
+    // ==================== STEPPER ====================
+    // The three steps are three pages: only the current one is on screen,
+    // and a step is only reachable once the step before it has produced what
+    // it needs — an extraction, then a file to compare against.
+    function showStep(step) {
+        if (step < 1 || step > 3 || step > maxStep) return;
+        currentStep = step;
+
+        for (let i = 1; i <= 3; i++) {
+            document.getElementById(`step${i}Content`).classList.toggle('hidden', i !== step);
+
+            const badge = document.getElementById(`step${i}Badge`);
+            badge.classList.remove('step-active', 'step-done', 'step-pending');
+            if (i === step) badge.classList.add('step-active');
+            else if (i <= maxStep) badge.classList.add('step-done');
+            else badge.classList.add('step-pending');
+        }
+
+        setLine('line1', maxStep >= 2);
+        setLine('line2', maxStep >= 3);
+        updateStepNav();
+        document.getElementById('extractTab').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function setLine(id, done) {
+        const line = document.getElementById(id);
+        line.classList.toggle('bg-green-500', done);
+        line.classList.toggle('bg-gray-300', !done);
+    }
+
+    function unlockStep(step) {
+        maxStep = Math.max(maxStep, step);
+        updateStepNav();
+    }
+
+    // a locked step should not look clickable
+    function updateStepNav() {
+        for (let i = 1; i <= 3; i++) {
+            const nav = document.getElementById(`step${i}Nav`);
+            nav.classList.toggle('cursor-pointer', i <= maxStep);
+            nav.classList.toggle('opacity-50', i > maxStep);
+        }
+    }
+
+    function setWorkflowContext(id, filename, rows, pages) {
+        const bar = document.getElementById('workflowContext');
+        bar.innerHTML = `
+            <div class="min-w-0">
+                <p class="text-xs text-gray-500">Working on extraction #${id}</p>
+                <p class="text-sm font-medium text-gray-800 truncate">${esc(filename)}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="bg-gray-100 px-2.5 py-1 rounded text-gray-700">${rows} rows</span>
+                <span class="bg-gray-100 px-2.5 py-1 rounded text-gray-700">${pages} pages</span>
+                <a href="${API_BASE}/download/${id}" class="px-2.5 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50">Download CSV</a>
+            </div>`;
+        bar.classList.remove('hidden');
+    }
+
+    function resetWorkflow() {
+        currentStep = 1;
+        currentExtractionId = null;
+        currentTables = [];
+        selectedTableIndex = null;
+        mergedRowCount = null;
+        selectedPdfFile = null;
+        selectedGroundFile = null;
+        extractedColumns = [];
+        existingColumns = [];
+        existingFileInfo = null;
+
+        // Back to a single unlocked page
+        maxStep = 1;
+        showStep(1);
+        document.getElementById('workflowContext').classList.add('hidden');
+        document.getElementById('step1Footer').classList.add('hidden');
+
+        // Reset Step 1
+        document.getElementById('step1UploadArea').classList.remove('hidden');
+        document.getElementById('extractionResult').innerHTML = '';
+        document.getElementById('pdfFileInput').value = '';
+        document.getElementById('pdfFileInfo').classList.add('hidden');
+        document.getElementById('extractBtn').disabled = true;
+        document.getElementById('extractionResult').classList.add('hidden');
+        document.getElementById('extractionProgress').classList.add('hidden');
+
+        document.getElementById('resetSection').classList.add('hidden');
+
+        // Reset Step 2
+        document.getElementById('groundFileInput').value = '';
+        document.getElementById('groundFileInfo').classList.add('hidden');
+        document.getElementById('loadGroundBtn').disabled = true;
+        document.getElementById('groundError').classList.add('hidden');
+
+        // Reset Step 3
+        document.getElementById('compareFieldRows').innerHTML = '';
+        document.getElementById('mappingError').classList.add('hidden');
+        document.getElementById('comparisonResult').classList.add('hidden');
+        document.getElementById('comparisonProgress').classList.add('hidden');
+    }
+
+    // ==================== INIT ====================
+    checkSession();
+    </script>
+</body>
+</html>
