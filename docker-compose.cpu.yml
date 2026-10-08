@@ -1,0 +1,55 @@
+# CPU-only deployment.
+#
+# Standalone — it is NOT an override of docker-compose.yml. Run it on its own:
+#
+#   docker compose -f docker-compose.cpu.yml up -d --build
+#
+# It uses a different host port (8003) and container name from the GPU
+# deployment, so both can run on the same host at the same time.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
+    image: table-data-extraction:cpu
+    container_name: table-data-extraction-cpu
+    ports:
+      # The app always listens on 8001 inside the container; only the host
+      # port differs, so 8001 stays free for the GPU deployment.
+      - "8003:8001"
+    volumes:
+      # Persist uploaded PDFs, split pages, OCR JSON, and CSV output across restarts
+      - ./storage/input:/app/storage/input
+      - ./storage/pages:/app/storage/pages
+      - ./storage/json:/app/storage/json
+      - ./storage/output:/app/storage/output
+      # Extraction history database — keeps records across restarts
+      - ./storage/db:/app/storage/db
+      # Model cache (PaddleOCR-VL/PaddleX weights) — avoids re-downloading on container restart
+      - model_cache_cpu:/root/.cache
+      - model_cache_paddlex_cpu:/root/.paddlex
+    environment:
+      - OCR_DEVICE=cpu
+      # Its own file in the shared db directory, so running the CPU and GPU
+      # deployments side by side does not put two writers on one SQLite file
+      - DB_PATH=/app/storage/db/table_extractor_cpu.db
+      # Override before deploying — this seeds the UI login on first startup
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme123}
+      # PaddleOCR-VL is heavy on CPU. Raise this to the core count you are
+      # willing to give the container; it is the main CPU tuning knob.
+      - CPU_THREADS=${CPU_THREADS:-8}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # CPU inference is slow and blocks the event loop, so the health check
+      # needs a long grace period before it starts marking the container down.
+      start_period: 180s
+
+volumes:
+  model_cache_cpu:
+  model_cache_paddlex_cpu:
