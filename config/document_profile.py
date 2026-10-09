@@ -67,7 +67,8 @@ class DocumentProfile:
     #: Column name -> compiled full-match regex.  Applied to EVERY non-empty
     #: cell of EVERY row (error #8), not just to the Midas column.
     column_patterns: dict = field(default_factory=lambda: {
-        "Case Size": re.compile(r"^\d+(?:\s*[xX]\s*\d+)*\s*(?:[A-Za-z]{1,4})?$"),
+        # e.g. 15 x 90G   6 x 4 x 440ML   12 x 1.5LTR   (decimals occur: 1.5LTR)
+        "Case Size": re.compile(r"^\d+(?:\.\d+)?(?:\s*[xX]\s*\d+(?:\.\d+)?)*\s*(?:[A-Za-z]{1,4})?$"),
         "Prom WSP": re.compile(rf"^{_PRICE_2DP}$"),
         "Std RSP": re.compile(rf"^{_PRICE_2DP}$"),
         # percentage with optional sign / decimals, e.g. 15.14%  26.5%  -3%
@@ -94,6 +95,7 @@ class DocumentProfile:
         re.compile(r"^BUY\s+\d{1,2}\s+GET\s+\d{1,2}\s+FREE$", re.I),   # BUY 1 GET 1 FREE
         re.compile(rf"^SAVE\s+{_AMOUNT}$", re.I),                      # SAVE £1.00
         re.compile(rf"^{_AMOUNT}\s+EACH$", re.I),                      # £1.50 EACH
+        re.compile(r"^\d{1,3}P$", re.I),                                # 50P  (pence; present in Test-Sheet.pdf)
     )
 
     #: Words that are OCR confusions of a grammar keyword.  Used ONLY to give
@@ -110,10 +112,17 @@ class DocumentProfile:
 
     # ---- which columns must be present / non-empty --------------------
     #: A row missing any of these goes to needs-review.
+    #: Chosen from the fields the business treats as essential.  EAN Barcode is
+    #: deliberately NOT here: in Test-Sheet.pdf the OCR returns it blank for every
+    #: row (it is artwork), so making it mandatory sent 100% of rows to review.
+    #: It is still validated (length + check digit) whenever a value exists.
     mandatory_columns: tuple = (
-        "Midas Code", "Product Description", "Case Size", "EAN Barcode",
-        "Std RSP", "Consumer Deal",
+        "Midas Code", "Product Description", "Consumer Deal",
     )
+
+    #: Columns where a ``$`` immediately before a digit may be corrected to the
+    #: document currency (see ``field_validators.apply_profile_corrections``).
+    currency_columns: tuple = ("Prom WSP", "Std RSP", "Consumer Deal")
 
     # ---- Leaflet column ------------------------------------------------
     #: The Leaflet column holds an ICON, not text (error #12).  We output

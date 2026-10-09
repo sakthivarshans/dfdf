@@ -248,6 +248,48 @@ def validate_deal(value, profile: DocumentProfile = ACTIVE_PROFILE) -> Issue | N
                  "deal text does not match any known deal wording", text)
 
 
+def apply_profile_corrections(
+    column: str, value, profile: DocumentProfile = ACTIVE_PROFILE
+) -> tuple[str, str | None]:
+    """
+    CONTROLLED correction of two known OCR confusions.  Returns
+    ``(value, note)``; ``note`` is None when nothing was changed.
+
+    This is deliberately NOT a global ``replace``.  A correction is applied
+    only when ALL of these hold:
+
+    * the column is one the profile lists (currency columns / Consumer Deal);
+    * the confusion is in its exact context - ``$`` immediately before a digit,
+      or the whole word ``POR`` inside a deal;
+    * the document profile makes the original reading impossible (this is a
+      GBP-only document, so a ``$`` price cannot be genuine; ``POR`` is not a
+      deal keyword);
+    * the CORRECTED value is then a full member of the column's grammar.
+
+    If the corrected text would still be invalid, the original is returned
+    untouched, so it fails validation and goes to review instead of being
+    papered over.  Every applied correction is returned in ``note`` so it can
+    be written to the audit file.
+    """
+
+    text = clean_text(value)
+    if not text:
+        return text, None
+
+    fixed = text
+    if column in profile.currency_columns and re.search(r"\$(?=\d)", fixed):
+        fixed = re.sub(r"\$(?=\d)", CURRENCY, fixed)
+
+    if column == "Consumer Deal" and re.search(r"\bPOR\b", fixed, re.I):
+        candidate = propose_deal_fix(fixed, profile)
+        if candidate:
+            fixed = candidate
+
+    if fixed != text and validate_cell(column, fixed, profile) is None:
+        return fixed, f"{text!r} -> {fixed!r}"
+    return text, None
+
+
 def validate_cell(column: str, value, profile: DocumentProfile = ACTIVE_PROFILE) -> Issue | None:
     """
     Validate one cell against its column's grammar.

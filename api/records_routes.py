@@ -273,8 +273,21 @@ async def extract(
             f"{result.rows_rejected} rejected"
         )
 
+    status = result.extraction_status
+    missing = {str(p): c for p, c in (result.missing_midas or {}).items()}
+    if status == "INCOMPLETE":
+        # Fail loudly: say exactly how many products are missing and where.
+        lost = sum(len(c) for c in missing.values())
+        message = (
+            f"INCOMPLETE EXTRACTION: expected {result.expected_rows} rows, "
+            f"{lost} missing from the output (pages: {', '.join(sorted(missing)) or 'see warnings'}). "
+            + " ".join(result.integrity_warnings or []) + " | " + message
+        )
+    elif status == "NEEDS_REVIEW":
+        message = f"NEEDS REVIEW: {result.rows_rejected} row(s) need checking. " + message
+
     return ExtractionResponse(
-        success=True,
+        success=status != "INCOMPLETE",
         record_id=result.record_id,
         message=message,
         document_name=result.document_name,
@@ -284,6 +297,10 @@ async def extract(
         rows_extracted=result.rows_extracted,
         rows_repaired=result.rows_repaired,
         rows_rejected=result.rows_rejected,
+        extraction_status=status,
+        expected_rows=result.expected_rows,
+        missing_midas=missing,
+        integrity_warnings=result.integrity_warnings or [],
         columns=[str(c) for c in merged.columns],
         data_preview=merged.head(50).fillna("").to_dict(orient="records"),
         tables=tables_summary,

@@ -37,10 +37,10 @@ import re
 import pandas as pd
 
 from config.document_profile import ACTIVE_PROFILE, DocumentProfile
-from config.settings import ALLOW_GRAMMAR_AUTOFIX
+from config.settings import PROFILE_CORRECTIONS
 from utils.field_validators import (
+    apply_profile_corrections,
     is_blank,
-    propose_deal_fix,
     strip_image_artifacts,
     validate_cell,
     validate_deal,
@@ -322,8 +322,15 @@ def repair_tail(values: list, columns: list[str]) -> list | None:
 
     midas_ix = columns.index("Midas Code")
     named = dict(zip(columns, values))
-    baseline = len(validate_row(named))
-    if baseline == 0:
+    issues = validate_row(named)
+    if not issues:
+        return None
+    # Evidence of a shift = a cell that HOLDS a wrong value.  A merely BLANK
+    # mandatory cell is not evidence: grammars overlap (a plain "£1.25" is a
+    # valid Std RSP AND a valid Consumer Deal), so "repairing" a blank by
+    # sliding a neighbour into it can silently put the wrong value in the
+    # wrong column.  Blank cells are for group-fill or review, not for guessing.
+    if all(i.code.startswith("blank_") for i in issues):
         return None
 
     width = len(values)
@@ -457,7 +464,8 @@ def finalize_rows(
     read from the OCR HTML - so the same strict rules apply to each.
     """
 
-    stats = {"validated": len(rows), "kept": 0, "needs_review": 0, "autofixed": 0}
+    stats = {"validated": len(rows), "kept": 0, "needs_review": 0, "autofixed": 0,
+             "corrections": []}
     kept: list[dict] = []
     review: list[dict] = []
 
@@ -465,15 +473,22 @@ def finalize_rows(
         sanitise_row(row, profile)
         flags = list(row.get("_flags", []))
 
-        # Optional, OFF by default: apply a grammar-constrained deal fix.
-        if ALLOW_GRAMMAR_AUTOFIX:
-            issue = validate_deal(row.get("Consumer Deal")) if row.get("Consumer Deal") else None
-            if issue is not None and issue.code == "deal_keyword":
-                fixed = propose_deal_fix(row["Consumer Deal"], profile)
-                if fixed:
-                    row["Consumer Deal"] = fixed
-                    flags.append("deal_autofixed")
-                    stats["autofixed"] += 1
+        # Controlled correction of known OCR confusions ($ for £, POR for FOR).
+        # Only applied when the corrected value is fully valid; every change is
+        # recorded for the audit file.  Skipped for rows read from the PDF text
+        # layer, whose characters are exact.
+        if PROFILE_CORRECTIONS and row.get("_verified_by", "vlm-only") != "text-layer":
+            for column in profile.currency_columns:
+                if column in row and row[column]:
+                    new, note = apply_profile_corrections(column, row[column], profile)
+                    if note:
+                        row[column] = new
+                        stats["autofixed"] += 1
+                        stats["corrections"].append({
+                            "page": row.get("_page", ""), "midas": row.get("Midas Code", ""),
+                            "column": column, "change": note})
+                        if not str(row.get("_verified_by", "")).endswith("+profile-correction"):
+                            row["_verified_by"] = row.get("_verified_by", "vlm-only") + "+profile-correction"
 
         issues = validate_row({k: v for k, v in row.items() if k not in META_KEYS}, profile)
 
@@ -559,7 +574,10 @@ def clean_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
              "rejected": 0, "filled": 0, "needs_review": 0}
 
     columns = list(df.columns)
-    data_columns = [c for c in columns if c != "source_table"]
+    # ``source_table`` and ``page`` are metadata added by the caller; counting
+    # them as cells made a banner row ("FRESH" x 11) look like it held two
+    # different values, so banners were rejected instead of recognised.
+    data_columns = [c for c in columns if c not in ("source_table", "page")]
     source_table = df["source_table"].iloc[0] if "source_table" in df.columns and len(df) else ""
 
     aligned: list[dict] = []
@@ -590,13 +608,10 @@ def clean_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
         # ---- Midas present and strictly valid -----------------------------
         if ACTIVE_PROFILE.midas_pattern.match(str(midas).strip()):
-            cells = dict(zip(data_columns, values))
-            tail = repair_tail(values, data_columns)
-            if tail is not None:                     # (#8) tail slid, fix verified
-                cells = dict(zip(data_columns, tail))
-                meta["_repaired"] = True
-                stats["repaired"] += 1
-            aligned.append(cells | meta)
+            # NOTE: tail repair is deliberately NOT done here.  It runs after
+            # merged groups are filled (below): a blank Consumer Deal covered
+            # by a rowspan is expected and must not look like a shifted row.
+            aligned.append(dict(zip(data_columns, values)) | meta)
             continue
 
         # ---- Midas cell holds something else ------------------------------
@@ -619,6 +634,17 @@ def clean_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
     stats["filled"] = fill_merged_groups(aligned, df.attrs.get(ROW_MERGES, []))
 
+    # Tail repair (#8), only now that merged groups are filled.
+    for row in aligned:
+        if row["_repaired"] or "Midas Code" not in row:
+            continue
+        cells = {c: row.get(c) for c in data_columns}
+        tail = repair_tail([cells[c] for c in data_columns], data_columns)
+        if tail is not None:
+            row.update(dict(zip(data_columns, tail)))
+            row["_repaired"] = True
+            stats["repaired"] += 1
+
     # The Leaflet column holds an ICON (#12).  Whatever text the OCR "read"
     # from it is noise, so it is cleared here; the geometry pass sets the real
     # Yes/No from pixels.
@@ -634,6 +660,7 @@ def clean_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
     stats["needs_review"] += fin["needs_review"]
     stats["rejected"] += fin["needs_review"]
+    stats["corrections"] = fin["corrections"]
     return kept_df, review_df, stats
 
 
@@ -672,7 +699,10 @@ def merge(frames: list[pd.DataFrame]) -> tuple[pd.DataFrame, pd.DataFrame, dict]
     for frame in frames:
         kept, review, frame_stats = clean_rows(frame)
         for key, value in frame_stats.items():
-            stats[key] = stats.get(key, 0) + value
+            if isinstance(value, (int, float)):
+                stats[key] = stats.get(key, 0) + value
+            elif key == "corrections":
+                stats.setdefault("corrections", []).extend(value)
         if not kept.empty:
             kept_frames.append(kept)
         if not review.empty:

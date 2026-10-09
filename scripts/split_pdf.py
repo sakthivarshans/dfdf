@@ -1,5 +1,5 @@
 from pathlib import Path
-import pymupdf as fitz
+import fitz
 
 def split_pdf(
     input_pdf: str | Path,

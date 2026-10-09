@@ -61,21 +61,29 @@ async def extract_csv(
         default=None,
         description="Required only for 'first_n' mode.",
         ge=1,
-        example=[5],
+        example=5,
     ),
 
     start_page: int | None = Form(
         default=None,
         description="Required only for 'page_range' mode.",
         ge=1,
-        example=[6],
+        example=6,
     ),
 
     end_page: int | None = Form(
         default=None,
         description="Required only for 'page_range' mode.",
         ge=1,
-        example=[8],
+        example=8,
+    ),
+
+    allow_incomplete: bool = Form(
+        default=False,
+        description=(
+            "By default an INCOMPLETE extraction (source rows missing from the "
+            "output) is refused with HTTP 422.  Set true to download the partial CSV anyway."
+        ),
     ),
 ):
 
@@ -139,7 +147,29 @@ async def extract_csv(
         end_page=end_page,
     )
 
+    # Never hand back a plausible-looking but incomplete CSV as a success.
+    if result.extraction_status == "INCOMPLETE" and not allow_incomplete:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "extraction_status": "INCOMPLETE",
+                "expected_rows": result.expected_rows,
+                "extracted_rows": result.rows_extracted + result.rows_needs_review,
+                "missing_rows": sum(len(c) for c in result.missing_midas.values()),
+                "missing_midas_by_page": {str(p): c for p, c in result.missing_midas.items()},
+                "warnings": result.integrity_warnings,
+                "partial_csv": str(result.merged_csv_path),
+                "hint": "Resubmit with allow_incomplete=true to download the partial CSV.",
+            },
+        )
+
     return FileResponse(
+        headers={
+            "X-Extraction-Status": result.extraction_status,
+            "X-Expected-Rows": str(result.expected_rows),
+            "X-Extracted-Rows": str(result.rows_extracted),
+            "X-Rows-Needing-Review": str(result.rows_needs_review),
+        },
         path=result.merged_csv_path,
         # the on-disk name carries the uid; hand the caller back their own name
         filename=f"{Path(original_name).stem}.csv",

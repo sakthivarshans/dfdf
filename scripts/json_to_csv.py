@@ -40,6 +40,7 @@ from utils.reconcile import (
     covered_by_geometry,
     cross_check,
     geometry_to_rows,
+    integrity_report,
     load_sidecars,
 )
 from utils.table_normalizer import (
@@ -72,6 +73,11 @@ class CsvResult:
     audit_csv_path: Path | None = None
     geometry_pages: int = 0
     midas_codes_on_pages: int = 0
+    # --- extraction integrity (source rows vs produced rows) ---
+    extraction_status: str = "COMPLETE"      # COMPLETE | NEEDS_REVIEW | INCOMPLETE
+    expected_rows: int = 0
+    missing_midas: dict = field(default_factory=dict)   # {page: [codes lost]}
+    integrity_warnings: list = field(default_factory=list)
 
 
 def _sort_key(frame: pd.DataFrame) -> pd.DataFrame:
@@ -136,8 +142,10 @@ def convert_json_folder(
     # ---- 2. OCR path (only for regions geometry did not cover) ---------------
     kept_parts, review_parts = [], []
     stats = {"repaired": 0, "rejected": 0, "needs_review": 0, "filled": 0, "banners": 0, "blank_midas": 0}
+    corrections: list[dict] = []
     for frame in vlm_frames:
         kept, review, s = clean_rows(frame)
+        corrections.extend(s.get("corrections", []))
         for key in stats:
             stats[key] += s.get(key, 0)
         page = frame["page"].iloc[0] if "page" in frame else ""
@@ -165,6 +173,10 @@ def convert_json_folder(
     g_kept, g_review, g_stats = finalize_rows(geometry_rows)
     kept_parts.append(g_kept)
     review_parts.append(g_review)
+    corrections.extend(g_stats.get("corrections", []))
+    for c in corrections:                       # every automatic correction is auditable
+        audit.append({"page": c["page"], "midas": c["midas"], "column": c["column"],
+                      "geometry": "", "vlm": f"corrected by document profile: {c['change']}"})
     stats["needs_review"] += g_stats["needs_review"]
     audit.extend(cross_check(geometry_rows, vlm_audit_rows))
 
@@ -173,11 +185,15 @@ def convert_json_folder(
     merged = _sort_key(pd.concat(nonempty(kept_parts, _kept_columns(ACTIVE_PROFILE)), ignore_index=True))
     rejected = _sort_key(pd.concat(nonempty(review_parts, _review_columns(ACTIVE_PROFILE)), ignore_index=True))
 
-    # Completeness proof: every Midas code on a geometry page is either kept or in review.
-    accounted = int(((merged["verified_by"] != "vlm-only")).sum()) + int(((rejected["verified_by"] != "vlm-only")).sum()) if not merged.empty or not rejected.empty else 0
-    if anchors_total and accounted < anchors_total:
-        audit.append({"page": "", "midas": "", "column": "(document)", "geometry": "",
-                      "vlm": f"{anchors_total} Midas codes found in the PDF but only {accounted} rows accounted for"})
+    # Integrity check: every product the SOURCE contains (PDF geometry and raw
+    # OCR JSON) must be in the CSV or in needs-review.  Otherwise the run is
+    # INCOMPLETE - it is never reported as a success.
+    integrity = integrity_report(sidecars, json_folder, merged, rejected)
+    for page, codes in integrity["missing_midas"].items():
+        audit.append({"page": page, "midas": ",".join(codes), "column": "(MISSING ROWS)", "geometry": "",
+                      "vlm": f"{len(codes)} product(s) present in the source are absent from the output"})
+    for warning in integrity["warnings"]:
+        audit.append({"page": "", "midas": "", "column": "(integrity)", "geometry": "", "vlm": warning})
 
     merged.to_csv(output_csv, index=False, encoding=CSV_ENCODING)
 
@@ -192,6 +208,17 @@ def convert_json_folder(
         pd.DataFrame(audit).rename(columns={"geometry": "pdf_geometry_value", "vlm": "ocr_value_or_note"}) \
             .to_csv(audit_path, index=False, encoding=CSV_ENCODING)
 
+    bar = "=" * 70
+    print(f"\n{bar}\n  EXTRACTION STATUS : {integrity['status']}\n"
+          f"  expected rows     : {integrity['expected_rows']}\n"
+          f"  extracted rows    : {integrity['extracted_rows']}  "
+          f"(kept {integrity['kept_rows']}, needs review {integrity['review_rows']})\n"
+          f"  missing rows      : {integrity['missing_rows']}")
+    for page, codes in integrity["missing_midas"].items():
+        print(f"    page {page}: {', '.join(codes)}")
+    for warning in integrity["warnings"]:
+        print(f"  WARNING: {warning}")
+    print(bar)
     print(
         f"\n  tables       : {len(tables)} OCR tables, {len(sidecars)} geometry page(s)"
         f"\n  rows kept    : {len(merged)}   (every field validated)"
@@ -219,6 +246,10 @@ def convert_json_folder(
         audit_csv_path=audit_path,
         geometry_pages=len(sidecars),
         midas_codes_on_pages=anchors_total,
+        extraction_status=integrity["status"],
+        expected_rows=integrity["expected_rows"],
+        missing_midas=integrity["missing_midas"],
+        integrity_warnings=integrity["warnings"],
     )
 
 

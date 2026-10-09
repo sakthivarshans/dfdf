@@ -289,6 +289,7 @@ def process_page(pdf_path, png_path: Path, json_data: dict | None, page_number: 
 
         # ---- proof of completeness --------------------------------------
         sidecar["anchors_on_page"] = len(all_anchors)
+        sidecar["midas_codes"] = [w.text for w in all_anchors]
         rebuilt = sidecar["rows_rebuilt"]
         if rebuilt != len(all_anchors):
             sidecar["warnings"].append(

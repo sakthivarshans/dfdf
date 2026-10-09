@@ -38,22 +38,40 @@ def run(rows, merges=None):
 
 
 # ---- #1 FOR -> POR ---------------------------------------------------------
-def test_POR_in_consumer_deal_is_rejected_with_a_hint():
+def test_POR_is_rejected_when_corrections_are_off(monkeypatch):
+    monkeypatch.setattr("utils.table_normalizer.PROFILE_CORRECTIONS", False)
     kept, review, _ = run([good(deal="2 POR £5")])
     assert kept.empty and "FOR" in review.iloc[0]["reason"]
 
 
+def test_POR_is_corrected_only_in_context_and_recorded():
+    from utils.field_validators import apply_profile_corrections as fix
+    assert fix("Consumer Deal", "ANY 2 POR £1.75") == ("ANY 2 FOR £1.75", "'ANY 2 POR £1.75' -> 'ANY 2 FOR £1.75'")
+    assert fix("Consumer Deal", "2 POR")[1] is None           # corrected text still invalid: untouched
+    assert fix("Product Description", "POR 2 £5")[1] is None   # other columns are never touched
+    kept, review, stats = clean_rows(frame([good(deal="2 POR £5")]))
+    assert kept.iloc[0]["Consumer Deal"] == "2 FOR £5" and "profile-correction" in kept.iloc[0]["verified_by"]
+
+
 def test_valid_deal_wordings_pass():
-    for deal in ["£6.00", "HALF PRICE: £3.27", "ANY 2 FOR £3.00", "2 FOR £5", "3 FOR 2"]:
+    for deal in ["£6.00", "£3", "HALF PRICE: £3.27", "ANY 2 FOR £3.00", "2 FOR £5", "3 FOR 2", "50P"]:
         assert validate_deal(deal) is None, deal
 
 
 # ---- #2 currency -----------------------------------------------------------
-def test_dollar_and_euro_are_rejected():
+def test_dollar_and_euro_are_rejected_by_the_validator():
     for bad in ["$1.65", "€1.65"]:
         assert validate_cell("Std RSP", bad).code == "wrong_currency"
-    kept, review, _ = run([good(**{"Std RSP": "$1.65"})])
-    assert kept.empty and len(review) == 1
+
+
+def test_dollar_is_corrected_only_before_a_digit_and_euro_never():
+    from utils.field_validators import apply_profile_corrections as fix
+    assert fix("Std RSP", "$1.65")[0] == "£1.65"
+    assert fix("Std RSP", "€1.65")[1] is None
+    assert fix("Std RSP", "$")[1] is None
+    kept, review, stats = clean_rows(frame([good(**{"Std RSP": "$1.65"}), good("M222222", **{"Std RSP": "€1.65"})]))
+    assert list(kept["Std RSP"]) == ["£1.65"] and len(review) == 1
+    assert stats["needs_review"] == 1
 
 
 # ---- #3 Midas --------------------------------------------------------------
@@ -143,3 +161,22 @@ def test_merge_never_loses_a_row_silently():
     frames = [normalize_table(frame([good(), good("M12345"), good(midas=None)]).drop(columns="source_table"), "t")]
     merged, review, stats = merge(frames)
     assert len(merged) + len(review) == 3
+
+
+# ---- regression found on the real Test-Sheet JSON ----------------------------
+def test_blank_deal_covered_by_rowspan_is_not_mistaken_for_a_shifted_row():
+    """
+    Second row of a 2-row group has a blank Consumer Deal (covered by the
+    rowspan).  It must receive the group's deal - NOT have its Std RSP slid
+    into the blank cell (a plain price is a valid deal wording too).
+    """
+    rows = [good("M111111", deal="ANY 2 FOR £1.75", **{"Std RSP": "£1.25"}),
+            good("M222222", deal=None, **{"Std RSP": "£1.25"})]
+    kept, review, _ = run(rows, merges=[(0, 1, "Consumer Deal")])
+    assert list(kept["Consumer Deal"]) == ["ANY 2 FOR £1.75"] * 2
+    assert list(kept["Std RSP"]) == ["£1.25", "£1.25"]
+
+
+def test_blank_deal_without_a_group_goes_to_review_not_to_a_guess():
+    kept, review, _ = run([good("M222222", deal=None)])
+    assert kept.empty and "blank_consumer_deal" in review.iloc[0]["issue_codes"]

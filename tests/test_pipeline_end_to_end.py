@@ -33,8 +33,11 @@ def test_csv_is_100_percent_accurate_despite_a_faulty_ocr(tmp_path):
 def test_without_pdf_geometry_nothing_wrong_reaches_the_csv(tmp_path):
     truth, result = _run(tmp_path, geometry=False)
     _, _, diffs = compare(result.merged_csv_path, truth)
-    assert diffs == []                       # wrong rows are in review, never in the CSV
-    assert result.rows_needs_review > 0
+    # OCR alone cannot read barcodes / the Leaflet icon: those cells are BLANK
+    # (reported in the integrity warnings), but never WRONG.
+    assert [d for d in diffs if d[2] != ""] == []
+    assert {d[1] for d in diffs} <= {"EAN Barcode", "Leaflet"}
+    assert any("EAN Barcode is blank" in w for w in result.integrity_warnings)
 
 
 @pytest.mark.parametrize("option", [{"draw_rules": False}, {"drop_deal_rules": True}])
@@ -51,3 +54,31 @@ def test_a_row_with_no_midas_is_reported_not_lost(tmp_path):
     review = pd.read_csv(result.rejected_csv_path, dtype=str, keep_default_na=False)
     assert diffs == [] and result.rows_extracted == 17 and len(review) == 1
     assert "blank_midas" in review.iloc[0]["issue_codes"]
+
+
+def test_missing_rows_make_the_extraction_INCOMPLETE_and_name_the_codes(tmp_path):
+    """Simulate rows lost between OCR and CSV: the run must fail loudly."""
+    import json
+    truth, _ = _run(tmp_path)                                  # complete run first
+    assert _.extraction_status == "COMPLETE"
+    side = tmp_path / "json" / "_geometry" / "page_001.json"
+    data = json.loads(side.read_text())
+    lost = [r["cells"]["Midas Code"] for r in data["tables"][0]["rows"] if r["kind"] == "product"][:3]
+    data["tables"][0]["rows"] = [r for r in data["tables"][0]["rows"] if r["cells"].get("Midas Code") not in lost]
+    side.write_text(json.dumps(data))
+    # also remove them from the OCR JSON so only the sidecar's code list remembers them
+    result = convert_json_folder(tmp_path / "json", tmp_path / "out2" / "doc.csv")
+    assert result.extraction_status == "INCOMPLETE"
+    assert sorted(result.missing_midas[1]) == sorted(lost)
+    assert result.expected_rows - result.rows_extracted - result.rows_needs_review >= 0
+
+
+def test_truncated_ocr_output_is_reported(tmp_path):
+    truth = build_pdf(tmp_path / "doc.pdf")
+    render_pages(tmp_path / "doc.pdf", tmp_path / "pages")
+    faulty_ocr_json(truth, tmp_path / "json")
+    f = tmp_path / "json" / "page_001_res.json"
+    f.write_text(f.read_text().replace("</table>", ""))        # table HTML cut off
+    result = convert_json_folder(tmp_path / "json", tmp_path / "out" / "doc.csv")
+    assert result.extraction_status == "INCOMPLETE"
+    assert any("cut off" in w for w in result.integrity_warnings)

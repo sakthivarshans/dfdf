@@ -23,7 +23,10 @@ resolved by picking one - the row is sent to review.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
+
+import pandas as pd
 
 from config.document_profile import ACTIVE_PROFILE
 from config.settings import GEOMETRY_SUBDIR
@@ -161,3 +164,117 @@ def cross_check(geometry_rows: list[dict], vlm_rows: list[dict]) -> list[dict]:
                 audit.append({"page": g.get("_page", ""), "midas": midas, "column": column,
                               "geometry": gv, "vlm": vv})
     return audit
+
+
+# ==========================================================================
+# Extraction integrity  (never report success when rows are missing)
+# ==========================================================================
+
+#: Anything shaped like a Midas code, in any source text.  The look-behind
+#: stops "PM135" / "7UP" style product text from matching.
+_MIDAS_TOKEN = re.compile(r"(?<![A-Za-z0-9])M\d{3,9}(?!\d)")
+_PAGE_IN_NAME = re.compile(r"page_(\d+)")
+
+
+def source_midas_candidates(json_folder: str | Path) -> tuple[dict[int, set], list[int]]:
+    """
+    Midas-looking tokens in the RAW OCR JSON of each page - the evidence of
+    how many products the OCR actually saw, independent of table parsing.
+
+    Also returns the pages whose OCR table HTML is cut off (more ``<table``
+    than ``</table>``), the signature of the VLM running out of output tokens.
+    """
+
+    codes: dict[int, set] = {}
+    truncated: list[int] = []
+    for file in sorted(Path(json_folder).glob("*.json")):
+        m = _PAGE_IN_NAME.search(file.stem)
+        if not m:
+            continue
+        page = int(m.group(1))
+        text = file.read_text(encoding="utf-8", errors="ignore")
+        codes.setdefault(page, set()).update(_MIDAS_TOKEN.findall(text))
+        if text.count("<table") > text.count("</table>"):
+            truncated.append(page)
+    return codes, truncated
+
+
+def integrity_report(sidecars: dict[int, dict], json_folder, kept: pd.DataFrame,
+                     review: pd.DataFrame) -> dict:
+    """
+    Compare what the SOURCE contains with what the CSV pipeline produced.
+
+    Sources of 'what exists' (union, per page):
+      * Midas words found in the PDF by the geometry pass (exact on digital PDFs)
+      * Midas-looking tokens in the raw OCR JSON
+
+    Every such code must appear in the output, either in the kept CSV or in
+    needs-review.  A code that appears in neither is a LOST row.
+
+    Status
+    ------
+    COMPLETE      every source code is accounted for and nothing needs review
+    NEEDS_REVIEW  every source code is accounted for, but some rows need review
+    INCOMPLETE    at least one source row is missing from the output (or the
+                  OCR output was cut off) - the CSV must not be used as final
+    """
+
+    ocr_codes, truncated = source_midas_candidates(json_folder)
+    out = pd.concat([kept, review], ignore_index=True) if len(kept) or len(review) else pd.DataFrame(columns=["Midas Code", "page"])
+    out_pages = pd.to_numeric(out["page"], errors="coerce")
+
+    expected_total, missing, warnings = 0, {}, []
+    pages = sorted(set(ocr_codes) | set(sidecars))
+    for page in pages:
+        side = sidecars.get(page, {})
+        if side.get("mode") == "text-layer" and side.get("rows_rebuilt"):
+            # The PDF's own text is exact: IT defines which products exist.
+            # Raw-OCR tokens are not added - a digit the OCR damaged would
+            # otherwise be reported as a "missing row" (the cross-check in the
+            # audit file lists such OCR differences instead).
+            source = set(side.get("midas_codes", []))
+        else:
+            source = set(ocr_codes.get(page, set())) | set(side.get("midas_codes", []))
+        produced = set(out.loc[out_pages == page, "Midas Code"].astype(str))
+        expected_total += len(source | produced)
+        lost = sorted(source - produced)
+        if lost:
+            missing[page] = lost
+
+    blank_midas_rows = int((out["Midas Code"].astype(str).str.strip() == "").sum()) if len(out) else 0
+    expected_total += blank_midas_rows
+
+    covered_pages = {p for p, s in sidecars.items() if s.get("rows_rebuilt")}
+    for page in truncated:
+        if page not in covered_pages:
+            warnings.append(f"page {page}: OCR table output is cut off (unclosed <table>) and the PDF "
+                            "geometry pass did not cover it - rows after the cut-off are unrecoverable")
+
+    if len(kept) and "Midas Code" in kept:
+        dups = kept["Midas Code"][kept["Midas Code"].duplicated(keep=False)]
+        if len(dups):
+            warnings.append(f"duplicate Midas codes in the CSV: {sorted(set(dups))}")
+        for column in ("EAN Barcode", "Leaflet"):
+            blanks = int((kept[column].astype(str).str.strip() == "").sum())
+            if blanks > 0.5 * len(kept):
+                warnings.append(f"{column} is blank in {blanks}/{len(kept)} rows - it cannot be read by OCR; "
+                                "it needs the PDF geometry pass (scripts/geometry_pass.py)")
+
+    if missing or [w for w in warnings if "cut off" in w]:
+        status = "INCOMPLETE"
+    elif len(review):
+        status = "NEEDS_REVIEW"
+    else:
+        status = "COMPLETE"
+
+    return {
+        "status": status,
+        "expected_rows": expected_total,
+        "extracted_rows": len(out),
+        "kept_rows": len(kept),
+        "review_rows": len(review),
+        "missing_rows": sum(len(v) for v in missing.values()),
+        "missing_midas": {int(p): v for p, v in missing.items()},
+        "truncated_pages": truncated,
+        "warnings": warnings,
+    }

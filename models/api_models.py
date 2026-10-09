@@ -26,6 +26,11 @@ class ExtractionResponse(BaseModel):
     rows_extracted: int
     rows_repaired: int
     rows_rejected: int
+    # Integrity check: expected (in the source) vs extracted (in the output)
+    extraction_status: str = "COMPLETE"      # COMPLETE | NEEDS_REVIEW | INCOMPLETE
+    expected_rows: int = 0
+    missing_midas: dict[str, list[str]] = {}
+    integrity_warnings: list[str] = []
     columns: list[str]
     data_preview: list[dict]
     tables: list[TableSummary]

@@ -44,7 +44,7 @@ OCR_PIPELINE_VERSION = "v1.6"
 # gpu:1
 # Overridable via the OCR_DEVICE env var so the same image can run
 # CPU locally and GPU in the Docker deployment without code changes.
-OCR_DEVICE = os.getenv("OCR_DEVICE", "cpu")
+OCR_DEVICE = os.getenv("OCR_DEVICE", "gpu:0")
 
 # ----------------------------------------------------------
 # VLM decoding controls (error #15)
@@ -118,10 +118,12 @@ MIN_TEXT_LAYER_WORDS = 25
 # icon is reported as present.
 LEAFLET_INK_THRESHOLD = float(os.getenv("LEAFLET_INK_THRESHOLD", "0.02"))
 
-# If True, a grammar-constrained fix (e.g. "2 POR £5" -> "2 FOR £5") may be
-# applied when the second pass is unavailable.  Default False: the system
-# prefers a needs-review row over a guessed value.
-ALLOW_GRAMMAR_AUTOFIX = os.getenv("ALLOW_GRAMMAR_AUTOFIX", "0") == "1"
+# Controlled, context-aware correction of the two systematic OCR confusions
+# seen in the real data ("$" for "£" before a digit; "POR" for "FOR" inside a
+# deal).  Applied only if the corrected value is then fully valid, and every
+# correction is listed in <doc>-audit.csv.  Set PROFILE_CORRECTIONS=0 to send
+# those rows to needs-review instead.
+PROFILE_CORRECTIONS = os.getenv("PROFILE_CORRECTIONS", "1") == "1"
 
 # ==========================================================
 # CPU Settings

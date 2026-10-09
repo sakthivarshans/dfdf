@@ -1,0 +1,1916 @@
+{
+    "input_path": "D:\\shift\\OCR\\OCR-local\\PDF-Data-Extraction-main\\storage\\pages\\152da750_Test-Sheet\\page_004.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2481,
+    "height": 3508,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "paragraph_title",
+            "block_content": "EDLP",
+            "block_bbox": [
+                118,
+                77,
+                330,
+                179
+            ],
+            "block_id": 0,
+            "block_order": 1,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    118.0,
+                    77.0
+                ],
+                [
+                    330.0,
+                    77.0
+                ],
+                [
+                    330.0,
+                    179.0
+                ],
+                [
+                    118.0,
+                    179.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Image</td><td>Product Description</td><td>Case Size</td><td>Midas Code</td><td>EAN Barcode</td><td>Prom WSP</td><td>Std RSP</td><td>Consumer Deal</td><td>Promo POR</td><td>Leaflet</td><td>Feature Space</td></tr><tr><td>21\\n<img src=\"imgs/img_in_image_box_165_487_376_550.jpg\" alt=\"Image\"\" /></td><td>PEPSI REGULAR CAN</td><td>1 x 18 x 350ML</td><td>M298079</td><td><img src=\"imgs/img_in_image_box_1366_466_1572_571.jpg\" alt=\"Image\"\" /></td><td>£6.62</td><td>£13.39</td><td>£8.99</td><td>25.0%</td><td></td><td></td></tr><tr><td>22\\n<img src=\"imgs/img_in_image_box_240_647_301_816.jpg\" alt=\"Image\"\" /></td><td>VOLVIC MINERAL WATER PET\\n500ML</td><td>24 x 50CL</td><td>M797027</td><td><img src=\"imgs/img_in_image_box_1368_674_1572_782.jpg\" alt=\"Image\"\" /></td><td>£6.35</td><td>£1.15</td><td>2 POR £1.50</td><td>57.7%</td><td></td><td></td></tr><tr><td>23\\n<img src=\"imgs/img_in_image_box_240_862_301_1026.jpg\" alt=\"Image\"\" /></td><td>EVIAN MINERAL WATER PET</td><td>24 x 50CL</td><td>M203067</td><td><img src=\"imgs/img_in_image_box_1366_888_1570_992.jpg\" alt=\"Image\"\" /></td><td>£8.86</td><td>£1.09</td><td>2 POR £1.50</td><td>40.9%</td><td></td><td></td></tr><tr><td>24\\n<img src=\"imgs/img_in_image_box_245_1060_299_1182.jpg\" alt=\"Image\"\" /></td><td>F/SHT APPLE&amp;BLKCRT LOW SUGAR</td><td>12 x 275ML</td><td>M178265</td><td><img src=\"imgs/img_in_image_box_1364_1063_1566_1173.jpg\" alt=\"Image\"\" /></td><td>£6.29</td><td>£1.25</td><td rowspan=\"2\">ANY 2 POR\\n£1.75</td><td>28.1%</td><td></td><td></td></tr><tr><td>[f47]</td><td>F/SHT ORANGE LOW SUGAR</td><td>12 x 275ML</td><td>M178264</td><td><img src=\"imgs/img_in_image_box_1366_1206_1565_1312.jpg\" alt=\"Image\"\" /></td><td>£6.29</td><td>£1.25</td><td>28.1%</td><td></td><td></td></tr><tr><td>25\\n<img src=\"imgs/img_in_image_box_245_1346_298_1457.jpg\" alt=\"Image\"\" /></td><td>ROBS RTD ORANG &amp; MANGO FM115 <img src=\"imgs/img_in_image_box_957_1371_1015_1432.jpg\" alt=\"Image\"\" /></td><td>12 x 500ML</td><td>M300318</td><td><img src=\"imgs/img_in_image_box_1368_1345_1570_1455.jpg\" alt=\"Image\"\" /></td><td>£6.50</td><td>£1.15</td><td rowspan=\"2\">ANY 2 POR\\n£1.75</td><td>25.7%</td><td></td><td></td></tr><tr><td>[f55]</td><td>ROBS RTD RSPBRY &amp; APL FM115 <img src=\"imgs/img_in_image_box_959_1509_1014_1569.jpg\" alt=\"Image\"\" /></td><td>12 x 500ML</td><td>M299633</td><td><img src=\"imgs/img_in_image_box_1369_1484_1571_1594.jpg\" alt=\"Image\"\" /></td><td>£6.50</td><td>£1.15</td><td>25.7%</td><td></td><td></td></tr><tr><td>25\\n[f85]</td><td>ROBS RTDBLKBRY&amp;BLUBRY FM115 [f74]</td><td>12 x 500ML</td><td>M299528</td><td><img src=\"imgs/img_in_image_box_1369_1623_1569_1734.jpg\" alt=\"Image\"\" /></td><td>£6.50</td><td>£1.15</td><td rowspan=\"4\">ANY 2 POR\\n£1.75</td><td>25.7%</td><td></td><td></td></tr><tr><td>[f27]</td><td>ROBINSONS RTD RASPBERRY &amp; APPLE PM</td><td>12 x 500ML</td><td>M307882</td><td><img src=\"imgs/img_in_image_box_1369_1764_1569_1874.jpg\" alt=\"Image\"\" /></td><td>£6.86</td><td>£1.19</td><td>21.6%</td><td></td><td></td></tr><tr><td>[f33]</td><td>ROBINSONS RTD ORANGE &amp; MANGO PM</td><td>12 x 500ML</td><td>M307859</td><td><img src=\"imgs/img_in_image_box_1369_1905_1570_2012.jpg\" alt=\"Image\"\" /></td><td>£6.86</td><td>£1.19</td><td>21.6%</td><td></td><td></td></tr><tr><td><img src=\"imgs/img_in_image_box_215_2057_328_2140.jpg\" alt=\"Image\"\" /></td><td>ROBINSONS RTD BLKBRY &amp; BLUBRY PM</td><td>12 x 500ML</td><td>M307858</td><td><img src=\"imgs/img_in_image_box_1368_2045_1572_2153.jpg\" alt=\"Image\"\" /></td><td>£6.86</td><td>£1.19</td><td>21.6%</td><td></td><td></td></tr><tr><td>26\\n[f73]</td><td>VOLVIC TOP S/BRY SUGAR FREE</td><td>12 x 500ML</td><td>M224338</td><td><img src=\"imgs/img_in_image_box_1367_2185_1570_2291.jpg\" alt=\"Image\"\" /></td><td>£6.17</td><td>£1.55</td><td rowspan=\"4\">ANY 2 POR\\n£2</td><td>38.3%</td><td></td><td></td></tr><tr><td>[f26]</td><td>VOLVIC TOP STRAWBERRY</td><td>12 x 500ML</td><td>M234759</td><td><img src=\"imgs/img_in_image_box_1366_2324_1571_2433.jpg\" alt=\"Image\"\" /></td><td>£6.17</td><td>£1.55</td><td>38.3%</td><td></td><td></td></tr><tr><td>[f32]</td><td>VOLVIC TOP LEMON &amp; LIME</td><td>12 x 500ML</td><td>M234772</td><td><img src=\"imgs/img_in_image_box_1366_2465_1572_2574.jpg\" alt=\"Image\"\" /></td><td>£6.17</td><td>£1.55</td><td>38.3%</td><td></td><td></td></tr><tr><td>[f53]</td><td>VOLVIC TOP SUMMER FRUITS</td><td>12 x 500ML</td><td>M234774</td><td><img src=\"imgs/img_in_image_box_1366_2605_1572_2713.jpg\" alt=\"Image\"\" /></td><td>£6.17</td><td>£1.55</td><td>38.3%</td><td></td><td></td></tr><tr><td>27\\n<img src=\"imgs/img_in_image_box_248_2745_298_2862.jpg\" alt=\"Image\"\" /></td><td>PEPSI DIET PM135 <img src=\"imgs/img_in_image_box_957_2771_1014_2833.jpg\" alt=\"Image\"\" /></td><td>12 x 500ML</td><td>M290326</td><td><img src=\"imgs/img_in_image_box_1365_2745_1572_2855.jpg\" alt=\"Image\"\" /></td><td>£7.94</td><td>£1.35</td><td rowspan=\"4\">ANY 2 POR\\n£2.20</td><td>27.8%</td><td></td><td></td></tr><tr><td>[f23]</td><td>PEPSI MAX CHERRY PET PM135 <img src=\"imgs/img_in_image_box_958_2910_1014_2975.jpg\" alt=\"Image\"\" /></td><td>12 x 500ML</td><td>M290409</td><td><img src=\"imgs/img_in_image_box_1364_2886_1572_2995.jpg\" alt=\"Image\"\" /></td><td>£7.94</td><td>£1.35</td><td>27.8%</td><td></td><td></td></tr><tr><td>[f58]</td><td>PEPSI MAX PET PM135 <img src=\"imgs/img_in_image_box_957_3048_1014_3114.jpg\" alt=\"Image\"\" /></td><td>12 x 500ML</td><td>M290407</td><td><img src=\"imgs/img_in_image_box_1363_3025_1572_3136.jpg\" alt=\"Image\"\" /></td><td>£7.94</td><td>£1.35</td><td>27.8%</td><td></td><td></td></tr><tr><td>[f28]</td><td>7UP REGULAR PET PM130 [f54]</td><td>12 x 500ML</td><td>M298037</td><td><img src=\"imgs/img_in_image_box_1362_3165_1573_3274.jpg\" alt=\"Image\"\" /></td><td>£7.74</td><td>£1.30</td><td>29.6%</td><td></td><td></td></tr></table>",
+            "block_bbox": [
+                115,
+                287,
+                2369,
+                3285
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    115.0,
+                    287.0
+                ],
+                [
+                    2369.0,
+                    287.0
+                ],
+                [
+                    2369.0,
+                    3285.0
+                ],
+                [
+                    115.0,
+                    3285.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "KEY: IN LEAFLET",
+            "block_bbox": [
+                123,
+                3418,
+                477,
+                3461
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 47,
+            "block_polygon_points": [
+                [
+                    123.0,
+                    3418.0
+                ],
+                [
+                    477.0,
+                    3418.0
+                ],
+                [
+                    477.0,
+                    3461.0
+                ],
+                [
+                    123.0,
+                    3461.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "P ON POSTER B ON BANNER BG BIGGER GROUP L/O LEAFLET ONLY (NOT ALLOCATED)",
+            "block_bbox": [
+                132,
+                3418,
+                2357,
+                3462
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 48,
+            "block_polygon_points": [
+                [
+                    493.0,
+                    3418.0
+                ],
+                [
+                    493.0,
+                    3461.0
+                ],
+                [
+                    716.0,
+                    3461.0
+                ],
+                [
+                    729.0,
+                    3461.0
+                ],
+                [
+                    1884.0,
+                    3461.0
+                ],
+                [
+                    1884.0,
+                    3418.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "W WELLINGBOROUGH LINES",
+            "block_bbox": [
+                1904,
+                3417,
+                2354,
+                3462
+            ],
+            "block_id": 4,
+            "block_order": null,
+            "group_id": 49,
+            "block_polygon_points": [
+                [
+                    1904.0,
+                    3417.0
+                ],
+                [
+                    2354.0,
+                    3417.0
+                ],
+                [
+                    2354.0,
+                    3462.0
+                ],
+                [
+                    1904.0,
+                    3462.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "5",
+            "block_bbox": [
+                2392,
+                3414,
+                2425,
+                3456
+            ],
+            "block_id": 5,
+            "block_order": null,
+            "group_id": 50,
+            "block_polygon_points": [
+                [
+                    2391.999755859375,
+                    3414.0
+                ],
+                [
+                    2423.999755859375,
+                    3414.0
+                ],
+                [
+                    2423.999755859375,
+                    3455.0
+                ],
+                [
+                    2391.999755859375,
+                    3455.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 17,
+                "label": "paragraph_title",
+                "score": 0.7229014039039612,
+                "coordinate": [
+                    118,
+                    77,
+                    330,
+                    179
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        118.0,
+                        77.0
+                    ],
+                    [
+                        330.0,
+                        77.0
+                    ],
+                    [
+                        330.0,
+                        179.0
+                    ],
+                    [
+                        118.0,
+                        179.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.9716771245002747,
+                "coordinate": [
+                    115,
+                    287,
+                    2369,
+                    3285
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        115.0,
+                        287.0
+                    ],
+                    [
+                        2369.0,
+                        287.0
+                    ],
+                    [
+                        2369.0,
+                        3285.0
+                    ],
+                    [
+                        115.0,
+                        3285.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7216340899467468,
+                "coordinate": [
+                    165,
+                    487,
+                    376,
+                    550
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        165.0,
+                        487.0
+                    ],
+                    [
+                        376.0,
+                        487.0
+                    ],
+                    [
+                        376.0,
+                        550.0
+                    ],
+                    [
+                        165.0,
+                        550.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8079016804695129,
+                "coordinate": [
+                    240,
+                    647,
+                    301,
+                    816
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        240.0,
+                        647.0
+                    ],
+                    [
+                        301.0,
+                        647.0
+                    ],
+                    [
+                        301.0,
+                        816.0
+                    ],
+                    [
+                        240.0,
+                        816.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8648507595062256,
+                "coordinate": [
+                    1366,
+                    466,
+                    1572,
+                    571
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1366.0,
+                        466.0
+                    ],
+                    [
+                        1572.0,
+                        466.0
+                    ],
+                    [
+                        1572.0,
+                        571.0
+                    ],
+                    [
+                        1366.0,
+                        571.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8199926018714905,
+                "coordinate": [
+                    240,
+                    862,
+                    301,
+                    1026
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        240.0,
+                        862.0
+                    ],
+                    [
+                        301.0,
+                        862.0
+                    ],
+                    [
+                        301.0,
+                        1026.0
+                    ],
+                    [
+                        240.0,
+                        1026.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7954149842262268,
+                "coordinate": [
+                    245,
+                    1060,
+                    299,
+                    1182
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        245.0,
+                        1060.0
+                    ],
+                    [
+                        299.0,
+                        1060.0
+                    ],
+                    [
+                        299.0,
+                        1182.0
+                    ],
+                    [
+                        245.0,
+                        1182.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7818134427070618,
+                "coordinate": [
+                    247,
+                    1200,
+                    297,
+                    1322
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        247.0,
+                        1200.0
+                    ],
+                    [
+                        297.0,
+                        1200.0
+                    ],
+                    [
+                        297.0,
+                        1322.0
+                    ],
+                    [
+                        247.0,
+                        1322.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.815906286239624,
+                "coordinate": [
+                    245,
+                    1346,
+                    298,
+                    1457
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        245.0,
+                        1346.0
+                    ],
+                    [
+                        298.0,
+                        1346.0
+                    ],
+                    [
+                        298.0,
+                        1457.0
+                    ],
+                    [
+                        245.0,
+                        1457.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8719589710235596,
+                "coordinate": [
+                    1368,
+                    674,
+                    1572,
+                    782
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1368.0,
+                        674.0
+                    ],
+                    [
+                        1572.0,
+                        674.0
+                    ],
+                    [
+                        1572.0,
+                        782.0
+                    ],
+                    [
+                        1368.0,
+                        782.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8308351635932922,
+                "coordinate": [
+                    245,
+                    1486,
+                    298,
+                    1602
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        245.0,
+                        1486.0
+                    ],
+                    [
+                        298.0,
+                        1486.0
+                    ],
+                    [
+                        298.0,
+                        1602.0
+                    ],
+                    [
+                        245.0,
+                        1602.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8084738850593567,
+                "coordinate": [
+                    246,
+                    1627,
+                    298,
+                    1741
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        246.0,
+                        1627.0
+                    ],
+                    [
+                        298.0,
+                        1627.0
+                    ],
+                    [
+                        298.0,
+                        1741.0
+                    ],
+                    [
+                        246.0,
+                        1741.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.768549919128418,
+                "coordinate": [
+                    246,
+                    1766,
+                    297,
+                    1880
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        246.0,
+                        1766.0
+                    ],
+                    [
+                        297.0,
+                        1766.0
+                    ],
+                    [
+                        297.0,
+                        1880.0
+                    ],
+                    [
+                        246.0,
+                        1880.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.6196591854095459,
+                "coordinate": [
+                    957,
+                    1371,
+                    1015,
+                    1432
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        957.0,
+                        1371.0
+                    ],
+                    [
+                        1015.0,
+                        1371.0
+                    ],
+                    [
+                        1015.0,
+                        1432.0
+                    ],
+                    [
+                        957.0,
+                        1432.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8608385324478149,
+                "coordinate": [
+                    1366,
+                    888,
+                    1570,
+                    992
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1366.0,
+                        888.0
+                    ],
+                    [
+                        1570.0,
+                        888.0
+                    ],
+                    [
+                        1570.0,
+                        992.0
+                    ],
+                    [
+                        1366.0,
+                        992.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7652360200881958,
+                "coordinate": [
+                    215,
+                    2057,
+                    328,
+                    2140
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        215.0,
+                        2057.0
+                    ],
+                    [
+                        328.0,
+                        2057.0
+                    ],
+                    [
+                        328.0,
+                        2140.0
+                    ],
+                    [
+                        215.0,
+                        2140.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.6608742475509644,
+                "coordinate": [
+                    959,
+                    1509,
+                    1014,
+                    1569
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        959.0,
+                        1509.0
+                    ],
+                    [
+                        1014.0,
+                        1509.0
+                    ],
+                    [
+                        1014.0,
+                        1569.0
+                    ],
+                    [
+                        959.0,
+                        1569.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.5432115197181702,
+                "coordinate": [
+                    249,
+                    2182,
+                    295,
+                    2277
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        249.0,
+                        2182.0
+                    ],
+                    [
+                        295.0,
+                        2182.0
+                    ],
+                    [
+                        295.0,
+                        2277.0
+                    ],
+                    [
+                        249.0,
+                        2277.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7501251697540283,
+                "coordinate": [
+                    246,
+                    1906,
+                    297,
+                    2016
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        246.0,
+                        1906.0
+                    ],
+                    [
+                        297.0,
+                        1906.0
+                    ],
+                    [
+                        297.0,
+                        2016.0
+                    ],
+                    [
+                        246.0,
+                        2016.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8846651315689087,
+                "coordinate": [
+                    1364,
+                    1063,
+                    1566,
+                    1173
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1364.0,
+                        1063.0
+                    ],
+                    [
+                        1566.0,
+                        1063.0
+                    ],
+                    [
+                        1566.0,
+                        1173.0
+                    ],
+                    [
+                        1364.0,
+                        1173.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.6695931553840637,
+                "coordinate": [
+                    960,
+                    1649,
+                    1013,
+                    1707
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        960.0,
+                        1649.0
+                    ],
+                    [
+                        1013.0,
+                        1649.0
+                    ],
+                    [
+                        1013.0,
+                        1707.0
+                    ],
+                    [
+                        960.0,
+                        1707.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.9042593836784363,
+                "coordinate": [
+                    1366,
+                    1206,
+                    1565,
+                    1312
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1366.0,
+                        1206.0
+                    ],
+                    [
+                        1565.0,
+                        1206.0
+                    ],
+                    [
+                        1565.0,
+                        1312.0
+                    ],
+                    [
+                        1366.0,
+                        1312.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.9027595520019531,
+                "coordinate": [
+                    1369,
+                    1484,
+                    1571,
+                    1594
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1369.0,
+                        1484.0
+                    ],
+                    [
+                        1571.0,
+                        1484.0
+                    ],
+                    [
+                        1571.0,
+                        1594.0
+                    ],
+                    [
+                        1369.0,
+                        1594.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.905620813369751,
+                "coordinate": [
+                    1368,
+                    1345,
+                    1570,
+                    1455
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1368.0,
+                        1345.0
+                    ],
+                    [
+                        1570.0,
+                        1345.0
+                    ],
+                    [
+                        1570.0,
+                        1455.0
+                    ],
+                    [
+                        1368.0,
+                        1455.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.5649858117103577,
+                "coordinate": [
+                    251,
+                    2322,
+                    295,
+                    2400
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        251.0,
+                        2354.0
+                    ],
+                    [
+                        294.0,
+                        2354.0
+                    ],
+                    [
+                        294.0,
+                        2399.0
+                    ],
+                    [
+                        251.0,
+                        2399.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.9023256301879883,
+                "coordinate": [
+                    1369,
+                    1623,
+                    1569,
+                    1734
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1369.0,
+                        1623.0
+                    ],
+                    [
+                        1569.0,
+                        1623.0
+                    ],
+                    [
+                        1569.0,
+                        1734.0
+                    ],
+                    [
+                        1369.0,
+                        1734.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8923437595367432,
+                "coordinate": [
+                    1369,
+                    1764,
+                    1569,
+                    1874
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1369.0,
+                        1764.0
+                    ],
+                    [
+                        1569.0,
+                        1764.0
+                    ],
+                    [
+                        1569.0,
+                        1874.0
+                    ],
+                    [
+                        1369.0,
+                        1874.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7245383858680725,
+                "coordinate": [
+                    250,
+                    2458,
+                    296,
+                    2570
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        250.0,
+                        2458.0
+                    ],
+                    [
+                        296.0,
+                        2458.0
+                    ],
+                    [
+                        296.0,
+                        2570.0
+                    ],
+                    [
+                        250.0,
+                        2570.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8905642628669739,
+                "coordinate": [
+                    1369,
+                    1905,
+                    1570,
+                    2012
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1369.0,
+                        1905.0
+                    ],
+                    [
+                        1570.0,
+                        1905.0
+                    ],
+                    [
+                        1570.0,
+                        2012.0
+                    ],
+                    [
+                        1369.0,
+                        2012.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.758718729019165,
+                "coordinate": [
+                    248,
+                    2596,
+                    296,
+                    2712
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        248.0,
+                        2596.0
+                    ],
+                    [
+                        296.0,
+                        2596.0
+                    ],
+                    [
+                        296.0,
+                        2712.0
+                    ],
+                    [
+                        248.0,
+                        2712.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8835185766220093,
+                "coordinate": [
+                    1368,
+                    2045,
+                    1572,
+                    2153
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1368.0,
+                        2045.0
+                    ],
+                    [
+                        1572.0,
+                        2045.0
+                    ],
+                    [
+                        1572.0,
+                        2153.0
+                    ],
+                    [
+                        1368.0,
+                        2153.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7837453484535217,
+                "coordinate": [
+                    247,
+                    3158,
+                    298,
+                    3281
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        247.0,
+                        3158.0
+                    ],
+                    [
+                        298.0,
+                        3158.0
+                    ],
+                    [
+                        298.0,
+                        3281.0
+                    ],
+                    [
+                        247.0,
+                        3281.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.775219738483429,
+                "coordinate": [
+                    248,
+                    2745,
+                    298,
+                    2862
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        248.0,
+                        2745.0
+                    ],
+                    [
+                        298.0,
+                        2745.0
+                    ],
+                    [
+                        298.0,
+                        2862.0
+                    ],
+                    [
+                        248.0,
+                        2862.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7908103466033936,
+                "coordinate": [
+                    247,
+                    3019,
+                    297,
+                    3141
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        247.0,
+                        3019.0
+                    ],
+                    [
+                        297.0,
+                        3019.0
+                    ],
+                    [
+                        297.0,
+                        3141.0
+                    ],
+                    [
+                        247.0,
+                        3141.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7836335897445679,
+                "coordinate": [
+                    248,
+                    2881,
+                    297,
+                    3002
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        248.0,
+                        2881.0
+                    ],
+                    [
+                        297.0,
+                        2881.0
+                    ],
+                    [
+                        297.0,
+                        3002.0
+                    ],
+                    [
+                        248.0,
+                        3002.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8646385073661804,
+                "coordinate": [
+                    1367,
+                    2185,
+                    1570,
+                    2291
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1367.0,
+                        2185.0
+                    ],
+                    [
+                        1570.0,
+                        2185.0
+                    ],
+                    [
+                        1570.0,
+                        2291.0
+                    ],
+                    [
+                        1367.0,
+                        2291.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8641881942749023,
+                "coordinate": [
+                    1366,
+                    2324,
+                    1571,
+                    2433
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1366.0,
+                        2324.0
+                    ],
+                    [
+                        1571.0,
+                        2324.0
+                    ],
+                    [
+                        1571.0,
+                        2433.0
+                    ],
+                    [
+                        1366.0,
+                        2433.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8681836128234863,
+                "coordinate": [
+                    1366,
+                    2465,
+                    1572,
+                    2574
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1366.0,
+                        2465.0
+                    ],
+                    [
+                        1572.0,
+                        2465.0
+                    ],
+                    [
+                        1572.0,
+                        2574.0
+                    ],
+                    [
+                        1366.0,
+                        2574.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.6361089944839478,
+                "coordinate": [
+                    957,
+                    2771,
+                    1014,
+                    2833
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        957.0,
+                        2771.0
+                    ],
+                    [
+                        1014.0,
+                        2771.0
+                    ],
+                    [
+                        1014.0,
+                        2833.0
+                    ],
+                    [
+                        957.0,
+                        2833.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8549266457557678,
+                "coordinate": [
+                    1366,
+                    2605,
+                    1572,
+                    2713
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1366.0,
+                        2605.0
+                    ],
+                    [
+                        1572.0,
+                        2605.0
+                    ],
+                    [
+                        1572.0,
+                        2713.0
+                    ],
+                    [
+                        1366.0,
+                        2713.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8556678295135498,
+                "coordinate": [
+                    1365,
+                    2745,
+                    1572,
+                    2855
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1365.0,
+                        2745.0
+                    ],
+                    [
+                        1572.0,
+                        2745.0
+                    ],
+                    [
+                        1572.0,
+                        2855.0
+                    ],
+                    [
+                        1365.0,
+                        2855.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.6779940128326416,
+                "coordinate": [
+                    958,
+                    2910,
+                    1014,
+                    2975
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        958.0,
+                        2910.0
+                    ],
+                    [
+                        1014.0,
+                        2910.0
+                    ],
+                    [
+                        1014.0,
+                        2975.0
+                    ],
+                    [
+                        958.0,
+                        2975.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8690181374549866,
+                "coordinate": [
+                    1364,
+                    2886,
+                    1572,
+                    2995
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1364.0,
+                        2886.0
+                    ],
+                    [
+                        1572.0,
+                        2886.0
+                    ],
+                    [
+                        1572.0,
+                        2995.0
+                    ],
+                    [
+                        1364.0,
+                        2995.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.7158277034759521,
+                "coordinate": [
+                    957,
+                    3048,
+                    1014,
+                    3114
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        957.0,
+                        3048.0
+                    ],
+                    [
+                        1014.0,
+                        3048.0
+                    ],
+                    [
+                        1014.0,
+                        3114.0
+                    ],
+                    [
+                        957.0,
+                        3114.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8893600702285767,
+                "coordinate": [
+                    1363,
+                    3025,
+                    1572,
+                    3136
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1363.0,
+                        3025.0
+                    ],
+                    [
+                        1572.0,
+                        3025.0
+                    ],
+                    [
+                        1572.0,
+                        3136.0
+                    ],
+                    [
+                        1363.0,
+                        3136.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.674098789691925,
+                "coordinate": [
+                    958,
+                    3189,
+                    1014,
+                    3255
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        958.0,
+                        3189.0
+                    ],
+                    [
+                        1014.0,
+                        3189.0
+                    ],
+                    [
+                        1014.0,
+                        3255.0
+                    ],
+                    [
+                        958.0,
+                        3255.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 14,
+                "label": "image",
+                "score": 0.8935277462005615,
+                "coordinate": [
+                    1362,
+                    3165,
+                    1573,
+                    3274
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1362.0,
+                        3165.0
+                    ],
+                    [
+                        1573.0,
+                        3165.0
+                    ],
+                    [
+                        1573.0,
+                        3274.0
+                    ],
+                    [
+                        1362.0,
+                        3274.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.49475961923599243,
+                "coordinate": [
+                    123,
+                    3418,
+                    477,
+                    3461
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        123.0,
+                        3418.0
+                    ],
+                    [
+                        477.0,
+                        3418.0
+                    ],
+                    [
+                        477.0,
+                        3461.0
+                    ],
+                    [
+                        123.0,
+                        3461.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.4031839072704315,
+                "coordinate": [
+                    540,
+                    3419,
+                    721,
+                    3459
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        566.0,
+                        3419.0
+                    ],
+                    [
+                        720.0,
+                        3419.0
+                    ],
+                    [
+                        720.0,
+                        3458.0
+                    ],
+                    [
+                        566.0,
+                        3458.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 9,
+                "label": "footer_image",
+                "score": 0.43049418926239014,
+                "coordinate": [
+                    496,
+                    3417,
+                    541,
+                    3462
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        496.0,
+                        3417.0
+                    ],
+                    [
+                        541.0,
+                        3417.0
+                    ],
+                    [
+                        541.0,
+                        3462.0
+                    ],
+                    [
+                        496.0,
+                        3462.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.4009166657924652,
+                "coordinate": [
+                    740,
+                    3419,
+                    971,
+                    3461
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        740.0,
+                        3419.0
+                    ],
+                    [
+                        971.0,
+                        3419.0
+                    ],
+                    [
+                        971.0,
+                        3461.0
+                    ],
+                    [
+                        740.0,
+                        3461.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 9,
+                "label": "footer_image",
+                "score": 0.3624470829963684,
+                "coordinate": [
+                    738,
+                    3416,
+                    782,
+                    3462
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        738.0,
+                        3416.0
+                    ],
+                    [
+                        782.0,
+                        3416.0
+                    ],
+                    [
+                        782.0,
+                        3462.0
+                    ],
+                    [
+                        738.0,
+                        3462.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.5660687685012817,
+                "coordinate": [
+                    132,
+                    3418,
+                    2357,
+                    3462
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        493.0,
+                        3418.0
+                    ],
+                    [
+                        493.0,
+                        3461.0
+                    ],
+                    [
+                        716.0,
+                        3461.0
+                    ],
+                    [
+                        729.0,
+                        3461.0
+                    ],
+                    [
+                        1884.0,
+                        3461.0
+                    ],
+                    [
+                        1884.0,
+                        3418.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 9,
+                "label": "footer_image",
+                "score": 0.4111994206905365,
+                "coordinate": [
+                    992,
+                    3414,
+                    1038,
+                    3461
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        992.0,
+                        3414.0
+                    ],
+                    [
+                        1038.0,
+                        3414.0
+                    ],
+                    [
+                        1038.0,
+                        3461.0
+                    ],
+                    [
+                        992.0,
+                        3461.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.5802395343780518,
+                "coordinate": [
+                    1904,
+                    3417,
+                    2354,
+                    3462
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1904.0,
+                        3417.0
+                    ],
+                    [
+                        2354.0,
+                        3417.0
+                    ],
+                    [
+                        2354.0,
+                        3462.0
+                    ],
+                    [
+                        1904.0,
+                        3462.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.5886306166648865,
+                "coordinate": [
+                    2392,
+                    3414,
+                    2425,
+                    3456
+                ],
+                "order": 2,
+                "polygon_points": [
+                    [
+                        2391.999755859375,
+                        3414.0
+                    ],
+                    [
+                        2423.999755859375,
+                        3414.0
+                    ],
+                    [
+                        2423.999755859375,
+                        3455.0
+                    ],
+                    [
+                        2391.999755859375,
+                        3455.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

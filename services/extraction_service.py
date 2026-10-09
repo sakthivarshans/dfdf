@@ -29,6 +29,11 @@ class ExtractionResult:
     rows_rejected: int
     pages_processed: int
     elapsed_seconds: float
+    # Integrity of the run: did every product in the source reach the output?
+    extraction_status: str = "COMPLETE"      # COMPLETE | NEEDS_REVIEW | INCOMPLETE
+    expected_rows: int = 0
+    missing_midas: dict | None = None        # {page: [Midas codes lost]}
+    integrity_warnings: list | None = None
 
 
 def run_extraction(
@@ -80,6 +85,9 @@ def run_extraction(
         rows_extracted=csv_result.rows_extracted,
         rows_repaired=csv_result.rows_repaired,
         rows_rejected=csv_result.rows_rejected,
+        # "completed" keeps the UI's green badge; anything else is shown as a warning
+        status={"COMPLETE": "completed", "NEEDS_REVIEW": "needs_review",
+                "INCOMPLETE": "incomplete"}.get(csv_result.extraction_status, "completed"),
     )
 
     for table in tables:
@@ -106,4 +114,8 @@ def run_extraction(
         rows_rejected=csv_result.rows_rejected,
         pages_processed=pages_processed,
         elapsed_seconds=elapsed,
+        extraction_status=csv_result.extraction_status,
+        expected_rows=csv_result.expected_rows,
+        missing_midas=csv_result.missing_midas,
+        integrity_warnings=csv_result.integrity_warnings,
     )
